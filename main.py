@@ -1,5 +1,6 @@
-from flask import Flask, render_template, request,jsonify
+from flask import Flask, jsonify
 from flask_mysqldb import MySQL
+from pyathena import connect
 
 app = Flask(__name__)
 
@@ -7,36 +8,105 @@ app.config['MYSQL_HOST'] = 'oic-db-test.cgzshounia8v.us-east-1.rds.amazonaws.com
 app.config['MYSQL_USER'] = 'luis.azanero'
 app.config['MYSQL_PASSWORD'] = 'smart#123'
 app.config['MYSQL_DB'] = 'oic_db'
-
 mysql = MySQL(app)
+@app.route('/products')
+def getAllProducts():
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT id,country ,product_from_to_origin_system ,product_from_to_front_product_id ,front_product_name ,erp_item_ar_id ,erp_item_ar_name from oic_db.product_from_to_version where country='Peru'")
+        data = cur.fetchall()
+        resultado = []
+        for row in data:
+            content = {'id': row[0],'country': row[1],'product_from_to_origin_system': row[2],'product_from_to_front_product_id': row[3],'front_product_name': row[4],'erp_item_ar_id': row[5],'erp_item_ar_name': row[6]}
+            resultado.append(content)
+        return jsonify(resultado)
 
-@app.route('/products', methods=['GET'])
-def index():
-    cur = mysql.connection.cursor()
-    cur.execute("select * from oic_db.product_from_to_version where country ='Peru'")
-    rv = cur.fetchall()
-    result = []
-    for row in rv:
-        content = {
-            'id': row[0],
-            'created_at': row[1],
-            'country': row[2],
-            'product_from_to_origin_system': row[3],
-            'product_from_to_operation': row[4],
-            'product_from_to_front_product_id': row[5],
-            'front_product_name': row[6],
-            'erp_item_ar_id': row[7],
-            'erp_item_ar_name': row[8],
-            'erp_item_ar_overdue_recovery_id': row[9],
-            'erp_item_ar_overdue_recovery_name': row[10],
-            'erp_item_ar_discount_id': row[11],
-            'erp_gl_segment_id': row[12],
-            'erp_gl_segment_name': row[13],
-            'erp_ncm_code': row[14],
-            'to_generate_fiscal_document': row[15]
-        }
-        result.append(content)
-        return jsonify(result)
+    except Exception as e:
+        print(e)
+    finally:
+        cur.close()
+
+@app.route('/customer')
+def customer():
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT id,erp_customer_id ,full_name ,type_person ,identification_financial_responsible,chargeback_acquirer_label  from oic_db.customer WHERE nationality_code ='PE'")
+        data = cur.fetchall()
+        resultado = []
+        for row in data:
+            content = { 'id':row[0], 'erp_customer_id': row[1],'full_name': row[2],'type_person': row[3],'identification_financial_responsible': row[4],'chargeback_acquirer_label': row[5] }
+            resultado.append(content)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+    finally:
+        cur.close()
+
+@app.route('/cliente/<int:id>')
+def cliente(id):
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT id,erp_customer_id ,full_name ,type_person ,identification_financial_responsible,chargeback_acquirer_label from oic_db.customer WHERE nationality_code ='PE' and identification_financial_responsible ="+ str(id))
+        data = cur.fetchall()
+        resultado = []
+        for row in data:
+            content = { 'id':row[0], 'erp_customer_id': row[1],'full_name': row[2],'type_person': row[3],'identification_financial_responsible': row[4],'chargeback_acquirer_label': row[5] }
+            resultado.append(content)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+    finally:
+        cur.close()
+@app.route('/invoice')
+def invoice():
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT id,country ,unity_identification ,erp_business_unit ,erp_legal_entity ,erp_subsidiary ,acronym ,minifactu_id,front_id,erp_invoice_status_transaction  FROM oic_db.order_to_cash where DATE_FORMAT(created_at,'%Y-%m-%d') ='2022-12-22' and country ='Peru'")
+        data = cur.fetchall()
+        resultado = []
+        for row in data:
+            content = { 'id':row[0],'country':row[1],'unity_identification':row[2],'erp_business_unit':row[3],'erp_legal_entity':row[4],'erp_subsidiary':row[5],'acronym':row[6],'minifactu_id':row[7],'front_id':row[8],'erp_invoice_status_transaction':row[9]}
+            resultado.append(content)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+    finally:
+        cur.close()
+
+@app.route('/location')
+def location():
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+        cursor.execute("SELECT acronym  from prod_lake_modeled_refined.dim_locations where country ='Peru'")
+        resultado = []
+        for row in cursor:
+            content = { 'acronym':row[0] }
+            resultado.append(content)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
+
+@app.route('/minifactu')
+def minifactu():
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+        cursor.execute("select id_payment ,status_pagamento ,payed_at ,amount_paid ,pag_elegivel ,propriedade ,forma_pagamento ,country,load_datetime  from prod_lake_modeled_refined.minifactu_otc where payed_at between cast('2022-12-27 00:00:00' as timestamp) and  cast('2022-12-30 00:00:00' as timestamp) and country='Peru'")
+        resultado = []
+        for row in cursor:
+            content = { 'id_payment':row[0],'status_pagamento':row[1],'payed_at':row[2],'amount_paid':row[3],'pag_elegivel':row[4],'propriedade':row[5],'forma_pagamento':row[6],'country':row[7],'load_datetime':row[8] }
+            resultado.append(content)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
 
 if __name__ == '__main__':
-            app.run(debug=True)
+    app.run(debug=True)
