@@ -59,6 +59,7 @@ def cliente(id):
         print(e)
     finally:
         cur.close()
+
 @app.route('/invoice')
 def invoice():
     try:
@@ -107,6 +108,23 @@ def minifactu():
         print(e)
     finally:
         cursor.close()
+
+@app.route('/monitor_otc/<fecha_inicio>/<fecha_fin>')
+def monitor_otc(fecha_inicio,fecha_fin):
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+        cursor.execute("select cast(payed_at  as date) payed_at,count(*) as Total_tx,sum(amount_paid) as Valorizado,country from prod_lake_modeled_refined.minifactu_otc where payed_at between cast('"+str(fecha_inicio) +"' as timestamp) and  cast('"+str(fecha_fin) +"' as timestamp) and country='Peru' group by payed_at,country order by payed_at  desc")
+        resultado = []
+        for row in cursor:
+            content = { 'payed_at':row[0],'Total_tx':row[1],'Valorizado':row[2],'country':row[3] }
+            resultado.append(content)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
+
 
 if __name__ == '__main__':
     app.run(debug=True)
