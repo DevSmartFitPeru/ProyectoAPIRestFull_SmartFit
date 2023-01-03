@@ -63,23 +63,6 @@ def cliente(id):
     finally:
         cur.close()
 
-@app.route('/invoice')
-def invoice():
-    try:
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT id,country ,unity_identification ,erp_business_unit ,erp_legal_entity ,erp_subsidiary ,acronym ,minifactu_id,front_id,erp_invoice_status_transaction  FROM oic_db.order_to_cash where DATE_FORMAT(created_at,'%Y-%m-%d') ='2022-12-22' and country ='Peru'")
-        data = cur.fetchall()
-        resultado = []
-        for row in data:
-            content = { 'id':row[0],'country':row[1],'unity_identification':row[2],'erp_business_unit':row[3],'erp_legal_entity':row[4],'erp_subsidiary':row[5],'acronym':row[6],'minifactu_id':row[7],'front_id':row[8],'erp_invoice_status_transaction':row[9]}
-            resultado.append(content)
-        return jsonify(resultado)
-
-    except Exception as e:
-        print(e)
-    finally:
-        cur.close()
-
 @app.route('/location')
 def location():
     try:
@@ -100,7 +83,7 @@ def location():
 def minifactu(fecha_inicio):
     try:
         cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-        cursor.execute("select id_payment,	status_pagamento,	date_format(payed_at, '%Y_%m_%d') payed_at,	amount_paid,	pag_elegivel,	propriedade,	forma_pagamento,	country,	acronym,	external_id,	minifactu_id,	errors,	validacao_erro,	retornou_minifactu,	error,	validacao_coerce,	retornou_front,	gross_value,	amount_pag_elegivel,	exportado_minifactu,	exportado_sistema_externo,	amount_validacao_coerce,	amount_retornou_minifactu,	amount_validacao_erro,	amount_retornou_front,	date_format(load_datetime, '%Y_%m_%d') load_datetime,	amount_exportado_sistema_externo,	amount_exportado_minifactu from prod_lake_modeled_refined.minifactu_otc where payed_at = cast('"+str(fecha_inicio)+"' as date) and country='Peru'")
+        cursor.execute("select id_payment,	status_pagamento,	date_format(payed_at, '%Y-%m-%d') payed_at,	amount_paid,	pag_elegivel,	propriedade,	forma_pagamento,	country,	acronym,	external_id,	minifactu_id,	errors,	validacao_erro,	retornou_minifactu,	error,	validacao_coerce,	retornou_front,	gross_value,	amount_pag_elegivel,	exportado_minifactu,	exportado_sistema_externo,	amount_validacao_coerce,	amount_retornou_minifactu,	amount_validacao_erro,	amount_retornou_front,	date_format(load_datetime, '%Y-%m-%d') load_datetime,	amount_exportado_sistema_externo,	amount_exportado_minifactu from prod_lake_modeled_refined.minifactu_otc where payed_at = cast('"+str(fecha_inicio)+"' as date) and country='Peru'")
         resultado = []
         for row in cursor:
             content = { 'id_payment':row[0],
@@ -139,6 +122,38 @@ def minifactu(fecha_inicio):
     finally:
         cursor.close()
 
+@app.route('/fin/<fecha_inicio>/<fecha_fin>')
+def fin(fecha_inicio,fecha_fin):
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+        cursor.execute("SELECT fin.id ,fin .external_id ,fin .origin_system ,fin .amount ,date_format(fin .due_on, '%Y-%m-%d')due_on ,fin.status_pagamento ,fin .forma_pagamento ,fin .status_front ,fin .data_sistema_front, fin.brand ,fin .operadora ,fin .acronym ,fin.country,otc .external_id ,otc.status_pagamento ,otc.errors,otc.error ,date_format(otc.payed_at, '%Y-%m-%d')payed_at FROM prod_lake_modeled_refined.fin_otc fin left join prod_lake_modeled_refined.minifactu_otc otc on fin .external_id = otc.id_payment where otc.payed_at between cast('"+str(fecha_inicio)+"' as date) and  cast('"+str(fecha_fin)+"' as date) and otc.country='Peru'")
+        resultado = []
+        for row in cursor:
+            content = { 'id':row[0],
+            'external_id':row[1],
+            'origin_system':row[2],
+            'amount':row[3],
+            'due_on':row[4],
+            'status_pagamento':row[5],
+            'forma_pagamento':row[6],
+            'status_front':row[7],
+            'data_sistema_front':row[8],
+            'brand':row[9],
+            'operadora':row[10],
+            'acronym':row[11],
+            'country':row[12],
+            'external_id':row[13],
+            'status_pagamento':row[14],
+            'errors':row[15],
+            'error':row[16],
+            'payed_at':row[17]}
+            resultado.append(content)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
 @app.route('/monitor_otc/<fecha_inicio>/<fecha_fin>')
 def monitor_otc(fecha_inicio,fecha_fin):
     try:
