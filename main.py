@@ -68,10 +68,12 @@ def cliente(id):
 def location():
     try:
         cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-        cursor.execute("SELECT acronym  from prod_lake_modeled_refined.dim_locations where country ='Peru'")
+        cursor.execute("SELECT * from prod_lake_modeled_refined.dim_locations where country ='Peru'")
         resultado = []
         for row in cursor:
-            content = { 'acronym':row[0] }
+            content = {
+                'acronym':row[0] 
+                 }
             resultado.append(content)
         return jsonify(resultado)
 
@@ -243,6 +245,95 @@ def monitor_otc(fecha_inicio,fecha_fin):
         print(e)
     finally:
         cursor.close()
+@app.route('/dashboard_otc/<fecha_inicio>/<fecha_fin>')
+def dashboard_otc(fecha_inicio, fecha_fin):
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT date_format(created_at, '%Y-%m-%d') as created_at ,erp_business_unit,erp_invoice_customer_status_transaction,erp_receivable_status_transaction,erp_invoice_status_transaction,erp_receipt_status_transaction,count(*) as total_tx   from oic_db.order_to_cash otc where created_at between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' and country ='Peru' group by date_format(created_at, '%Y-%m-%d'),erp_business_unit,erp_invoice_customer_status_transaction,erp_receivable_status_transaction;")
+        data = cur.fetchall()
+        resultado = []
+        for row in data:
+            content = {
+            'created_at': row[0],
+            'erp_business_unit': row[1],
+            'erp_invoice_customer_status_transaction': row[2],
+            'erp_receivable_status_transaction': row[3],
+            'erp_invoice_status_transaction': row[4],
+            'erp_receipt_status_transaction': row[5],
+            'total_tx': row[6]}
+            resultado.append(content)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+    finally:
+        cur.close()
+
+@app.route('/sovos/<fecha_inicio>/<fecha_fin>')
+def sovos(fecha_inicio, fecha_fin):
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT distinct otc.id ,date_format(otc.created_at, '%Y-%m-%d') created_at ,otc.country ,otc.unity_identification ,otc.erp_business_unit ,otc.erp_legal_entity ,otc.erp_subsidiary ,otc.acronym ,otc.to_generate_invoice , otc.origin_system ,otc.minifactu_id ,otc.front_id ,date_format(otc.erp_invoice_customer_send_to_erp_at, '%Y-%m-%d %H:%i') erp_invoice_customer_send_to_erp_at ,date_format(erp_invoice_customer_returned_from_erp_at, '%Y-%m-%d %H:%i')  erp_invoice_customer_returned_from_erp_at ,erp_invoice_customer_status_transaction,date_format(erp_receivable_sent_to_erp_at, '%Y-%m-%d %H:%i') erp_receivable_sent_to_erp_at , date_format(erp_receivable_returned_from_erp_at, '%Y-%m-%d %H:%i') erp_receivable_returned_from_erp_at ,erp_receivable_customer_identification,erp_receivable_status_transaction ,date_format(erp_invoice_send_to_erp_at, '%Y-%m-%d %H:%i') erp_invoice_send_to_erp_at, date_format(erp_invoice_returned_from_erp_at, '%Y-%m-%d %H:%i') erp_invoice_returned_from_erp_at ,erp_invoice_status_transaction,date_format(erp_receipt_send_to_erp_at, '%Y-%m-%d %H:%i') erp_receipt_send_to_erp_at , date_format(erp_receipt_returned_from_erp_at, '%Y-%m-%d %H:%i') erp_receipt_returned_from_erp_at ,erp_receipt_status_transaction, r.erp_receivable_id,r.erp_clustered_receivable_id , r.conciliator_id ,r.transaction_type ,r.contract_number ,r.credit_card_brand ,r.truncated_credit_card ,r.price_list_value ,r.interest_value,r.administration_tax_percentage ,r.administration_tax_value , date_format( r.billing_date, '%Y-%m-%d') billing_date ,date_format(r.credit_date, '%Y-%m-%d') credit_date ,r.registration_gym_student ,r.fullname_gym_student ,r.oic_ids,cliente.identification_financial_responsible ,cliente.document_kind,Substring(UPPER(cliente.full_name), 1, 75) full_name,ii.front_product_id,ii.erp_item_ar_id ,ii.erp_item_ar_name ,url ,status_url from oic_db.order_to_cash otc inner join oic_db.receivable r on otc.id =r.order_to_cash_id inner join oic_db.invoice_customer cliente on otc.id = cliente.order_to_cash_id inner join oic_db.invoice i  on otc.id = i.order_to_cash_id left join oic_db.invoice_items ii  on i.id  = ii.id_invoice LEFT JOIN oic_db.invoice_erp_configurations iec ON iec.country = otc.country where DATE_FORMAT(otc.created_at,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' and otc .country ='Peru' AND iec.erp_business_unit = otc.erp_business_unit AND iec.erp_legal_entity = otc.erp_legal_entity AND iec.erp_subsidiary = otc.erp_subsidiary AND iec.origin_system = otc.origin_system AND iec.operation = otc.operation AND status_url ='error';")
+        data = cur.fetchall()
+        resultado = []
+        for row in data:
+            content = {
+            'id': row[0],
+            'created_at': row[1],
+            'country': row[2],
+            'unity_identification': row[3],
+            'erp_business_unit': row[4],
+            'erp_legal_entity': row[5],
+            'erp_subsidiary': row[6],
+            'acronym': row[7],
+            'to_generate_invoice': row[8],
+            'origin_system': row[9],
+            'minifactu_id': row[10],
+            'front_id': row[11],
+            'erp_invoice_customer_send_to_erp_at': row[12],
+            'erp_invoice_customer_returned_from_erp_at': row[13],
+            'erp_invoice_customer_status_transaction': row[14],
+            'erp_receivable_sent_to_erp_at': row[15],
+            'erp_receivable_returned_from_erp_at': row[16],
+            'erp_receivable_customer_identification': row[17],
+            'erp_receivable_status_transaction': row[18],
+            'erp_invoice_send_to_erp_at': row[19],
+            'erp_invoice_returned_from_erp_at': row[20],
+            'erp_invoice_status_transaction': row[21],
+            'erp_receipt_send_to_erp_at': row[22],
+            'erp_receipt_returned_from_erp_at': row[23],
+            'erp_receipt_status_transaction': row[24],
+            'erp_receivable_id': row[25],
+            'erp_clustered_receivable_id': row[26],
+            'conciliator_id': row[27],
+            'transaction_type': row[28],
+            'contract_number': row[29],
+            'credit_card_brand': row[30],
+            'truncated_credit_card': row[31],
+            'price_list_value': row[32],
+            'interest_value': row[33],
+            'administration_tax_percentage': row[34],
+            'administration_tax_value': row[35],
+            'billing_date': row[36],
+            'credit_date': row[37],
+            'registration_gym_student': row[38],
+            'fullname_gym_student': row[39],
+            'oic_ids': row[40],
+            'identification_financial_responsible': row[41],
+            'document_kind': row[42],
+            'full_name': row[43],
+            'front_product_id': row[44],
+            'erp_item_ar_id': row[45],
+            'erp_item_ar_name': row[46],
+            'url': row[47],
+            'status_url': row[48]}
+            resultado.append(content)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+    finally:
+        cur.close()
 
 @app.route('/oic/<fecha_inicio>')
 def oic(fecha_inicio):
