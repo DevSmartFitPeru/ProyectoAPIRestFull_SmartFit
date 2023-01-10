@@ -335,6 +335,49 @@ def sovos(fecha_inicio, fecha_fin):
     finally:
         cur.close()
 
+@app.route('/error_minifactu/<fecha_inicio>/<fecha_fin>')
+def error_minifactu(fecha_inicio,fecha_fin):
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+        cursor.execute("select id_payment,	status_pagamento,	date_format(payed_at, '%Y-%m-%d') payed_at,	amount_paid,	pag_elegivel,	propriedade,	forma_pagamento,	country,	acronym,	external_id,	minifactu_id,	errors,	validacao_erro,	retornou_minifactu,	error,	validacao_coerce,	retornou_front,	gross_value,	amount_pag_elegivel,	exportado_minifactu,	exportado_sistema_externo,	amount_validacao_coerce,	amount_retornou_minifactu,	amount_validacao_erro,	amount_retornou_front,	date_format(load_datetime, '%Y-%m-%d') load_datetime,	amount_exportado_sistema_externo,	amount_exportado_minifactu from prod_lake_modeled_refined.minifactu_otc where date_format(payed_at, '%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' and country='Peru' and error  is not null")
+        resultado = []
+        for row in cursor:
+            content = { 'id_payment':row[0],
+            'status_pagamento':row[1],
+            'payed_at':row[2],
+            'amount_paid':row[3],
+            'pag_elegivel':row[4],
+            'propriedade':row[5],
+            'forma_pagamento':row[6],
+            'country':row[7],
+            'acronym':row[8],
+            'external_id':row[9],
+            'minifactu_id':row[10],
+            'errors':row[11],
+            'validacao_erro':row[12],
+            'retornou_minifactu':row[13],
+            'error':row[14],
+            'validacao_coerce':row[15],
+            'retornou_front':row[16],
+            'gross_value':row[17],
+            'amount_pag_elegivel':row[18],
+            'exportado_minifactu':row[19],
+            'exportado_sistema_externo':row[20],
+            'amount_validacao_coerce':row[21],
+            'amount_retornou_minifactu':row[22],
+            'amount_validacao_erro':row[23],
+            'amount_retornou_front':row[24],
+            'load_datetime':row[25],
+            'amount_exportado_sistema_externo':row[26],
+            'amount_exportado_minifactu':row[27] }
+            resultado.append(content)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
+
 @app.route('/oic/<fecha_inicio>')
 def oic(fecha_inicio):
 
