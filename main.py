@@ -268,7 +268,6 @@ def dashboard_otc(fecha_inicio, fecha_fin):
         print(e)
     finally:
         cur.close()
-
 @app.route('/sovos/<fecha_inicio>/<fecha_fin>')
 def sovos(fecha_inicio, fecha_fin):
     try:
