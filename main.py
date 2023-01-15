@@ -249,7 +249,7 @@ def monitor_otc(fecha_inicio,fecha_fin):
 def dashboard_otc(fecha_inicio, fecha_fin):
     try:
         cur = mysql.connection.cursor()
-        cur.execute("SELECT date_format(created_at, '%Y-%m-%d') as created_at ,erp_business_unit,erp_invoice_customer_status_transaction,erp_receivable_status_transaction,erp_invoice_status_transaction,erp_receipt_status_transaction,count(*) as total_tx   from oic_db.order_to_cash otc where created_at between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' and country ='Peru' group by date_format(created_at, '%Y-%m-%d'),erp_business_unit,erp_invoice_customer_status_transaction,erp_receivable_status_transaction;")
+        cur.execute("SELECT date_format(otc.created_at, '%Y-%m-%d') as created_at ,erp_business_unit,erp_invoice_customer_status_transaction,erp_receivable_status_transaction,erp_invoice_status_transaction,erp_receipt_status_transaction,count(*) as total_tx,FORMAT(SUM(r.price_list_value), 2) as Valorizado from oic_db.order_to_cash otc inner join oic_db.receivable r on otc.id =r.order_to_cash_id  where date_format(otc.created_at, '%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' and otc.country ='Peru' group by date_format(otc.created_at, '%Y-%m-%d'),erp_business_unit,erp_invoice_customer_status_transaction,erp_receivable_status_transaction;")
         data = cur.fetchall()
         resultado = []
         for row in data:
@@ -260,7 +260,8 @@ def dashboard_otc(fecha_inicio, fecha_fin):
             'erp_receivable_status_transaction': row[3],
             'erp_invoice_status_transaction': row[4],
             'erp_receipt_status_transaction': row[5],
-            'total_tx': row[6]}
+            'total_tx': row[6],
+            'valorizado': row[7]}
             resultado.append(content)
         return jsonify(resultado)
 
