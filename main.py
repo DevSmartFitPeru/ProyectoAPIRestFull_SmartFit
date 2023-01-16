@@ -377,7 +377,28 @@ def error_minifactu(fecha_inicio,fecha_fin):
         print(e)
     finally:
         cursor.close()
+@app.route('/facturacion_rp/<fecha_inicio>/<fecha_fin>')
+def facturacion_rp(fecha_inicio, fecha_fin):
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("Select CASE WHEN acronym ='LIMVMT1' THEN '75' WHEN acronym ='CUSCUS1' THEN '31' WHEN acronym ='HUAHUA1' THEN '6' WHEN acronym ='PIUPIU1' THEN '10' WHEN acronym ='LIMATE1' THEN '59' WHEN acronym ='TRUTRU2' THEN '14' WHEN acronym ='CHICLA2' THEN '3' WHEN acronym ='CAJCAJ1' THEN '33' WHEN acronym ='AQPCAY2' THEN '1' END as Numeracion, CASE WHEN acronym ='LIMVMT1' THEN 'LC-410'  WHEN acronym ='CUSCUS1' THEN 'TI-04' WHEN acronym ='HUAHUA1' THEN 'LE-02'  WHEN acronym ='PIUPIU1' THEN 'TI-04' WHEN acronym ='LIMATE1' THEN 'TI-206' WHEN acronym ='TRUTRU2' THEN 'LC-201'  WHEN acronym ='CHICLA2' THEN 'LC-203' WHEN acronym ='CAJCAJ1' THEN 'TI-01'  WHEN acronym ='AQPCAY2' THEN 'LC-301' END as Cod_RP,date_format(otc.created_at, '%Y-%m-%d') as Fecha, date_format(otc.created_at, '%Y%m%d') fecha_rp, count(*) as Total_Transacciones, round(SUM(r.price_list_value/1.18),2) as Base_Imponible from oic_db.order_to_cash otc inner join oic_db.receivable r on otc.id = r.order_to_cash_id  where date_format(otc.created_at, '%Y-%m-%d')  between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' and country ='Peru' and otc.erp_invoice_status_transaction ='created_at_erp' and acronym in  ('LIMVMT1', 'CUSCUS1','HUAHUA1', 'PIUPIU1','LIMATE1','TRUTRU2','CHICLA2', 'CAJCAJ1', 'AQPCAY2') group by acronym order by Fecha desc;")
+        data = cur.fetchall()
+        resultado = []
+        for row in data:
+            content = {
+            'Numeracion': row[0],
+            'cod_RP': row[1],
+            'Fecha': row[2],
+            'fecha_rp': row[3],
+            'Total_Transacciones': row[4],
+            'Base_Imponible': row[5]}
+            resultado.append(content)
+        return jsonify(resultado)
 
+    except Exception as e:
+        print(e)
+    finally:
+        cur.close()
 @app.route('/oic/<fecha_inicio>')
 def oic(fecha_inicio):
 
