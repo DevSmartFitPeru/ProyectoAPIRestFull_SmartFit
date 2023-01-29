@@ -82,11 +82,11 @@ def location():
     finally:
         cursor.close()
 
-@app.route('/minifactu/<fecha_inicio>')
-def minifactu(fecha_inicio):
+@app.route('/minifactu/<fecha_inicio>/<fecha_fin>')
+def minifactu(fecha_inicio,fecha_fin):
     try:
         cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-        cursor.execute("select id_payment,	status_pagamento,	date_format(payed_at, '%Y-%m-%d') payed_at,	amount_paid,	pag_elegivel,	propriedade,	forma_pagamento,	country,	acronym,	external_id,	minifactu_id,	errors,	validacao_erro,	retornou_minifactu,	error,	validacao_coerce,	retornou_front,	gross_value,	amount_pag_elegivel,	exportado_minifactu,	exportado_sistema_externo,	amount_validacao_coerce,	amount_retornou_minifactu,	amount_validacao_erro,	amount_retornou_front,	date_format(load_datetime, '%Y-%m-%d') load_datetime,	amount_exportado_sistema_externo,	amount_exportado_minifactu from prod_lake_modeled_refined.minifactu_otc where payed_at = cast('"+str(fecha_inicio)+"' as date) and country='Peru'")
+        cursor.execute("select id_payment,	status_pagamento,	date_format(payed_at, '%Y-%m-%d') payed_at,	amount_paid,	pag_elegivel,	propriedade,	forma_pagamento,	country,	acronym,	external_id,	minifactu_id,	errors,	validacao_erro,	retornou_minifactu,	error,	validacao_coerce,	retornou_front,	gross_value,	amount_pag_elegivel,	exportado_minifactu,	exportado_sistema_externo,	amount_validacao_coerce,	amount_retornou_minifactu,	amount_validacao_erro,	amount_retornou_front,	date_format(load_datetime, '%Y-%m-%d') load_datetime,	amount_exportado_sistema_externo,	amount_exportado_minifactu from prod_lake_modeled_refined.minifactu_otc where payed_at between cast('"+str(fecha_inicio)+"' as date) and  cast('"+str(fecha_fin)+"' as date) and country='Peru'")
         resultado = []
         for row in cursor:
             content = { 'id_payment':row[0],
@@ -399,6 +399,35 @@ def facturacion_rp(fecha_inicio, fecha_fin):
         print(e)
     finally:
         cur.close()
+@app.route('/scheduled')
+def scheduled():
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+        cursor.execute("select id ,external_id ,origin_system ,amount ,date_format(due_on, '%Y-%m-%d') due_on ,status_pagamento ,forma_pagamento ,status_front ,brand ,operadora ,acronym ,country , amount_sent_operadora ,date_format(load_datetime, '%Y-%m-%d %H:%i:%s')  load_datetime from prod_lake_modeled_refined.fin_otc where status_pagamento = 'rejeitado' and operadora in ('peru_interbank','VisanetPERU','MCprocesosPERU') and data_sistema_front is null and status_front ='scheduled'")
+        resultado = []
+        for row in cursor:
+            content = {
+            'id':row[0],
+            'external_id':row[1],
+            'origin_system':row[2],
+            'amount':row[3],
+            'due_on':row[4],
+            'status_pagamento':row[5],
+            'forma_pagamento':row[6],
+            'status_front':row[7],
+            'brand':row[8],
+            'operadora':row[9],
+            'acronym':row[10],
+            'country':row[11],
+            'amount_sent_operadora':row[12],
+            'load_datetime':row[13]}
+            resultado.append(content)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+    finally:
+             cursor.close()
 @app.route('/oic/<fecha_inicio>')
 def oic(fecha_inicio):
 
