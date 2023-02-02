@@ -428,6 +428,54 @@ def scheduled():
         print(e)
     finally:
              cursor.close()
+
+@app.route('/gesplan/<fecha_inicio>/<fecha_fin>')
+def facturacion_rp(fecha_inicio, fecha_fin):
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT otc.minifactu_id, date_format(otc.created_at, '%Y-%m-%d') created_at,otc.erp_receipt_status_transaction , otc.erp_business_unit, otc.front_id, otc.erp_subsidiary, recg.erp_source_name, recg.erp_type_transaction, recg.erp_payments_terms, recg.erp_currency_code, recg.erp_currency_conversion_type, crc.identification_financial_responsible, crc.full_name, date_format(rec.credit_date, '%Y-%m-%d') AS fecha_cobro, rftv.bank_number, right(rftv.bank_branch, 4) AS bank_branch, convert(rftv.bank_account, unsigned) AS bank_account, RTRIM(concat('RD_', rftv.bank_number, ' ', right(rftv.bank_branch, 4), ' ', convert(rftv.bank_account, unsigned))) Receipt_Method, RTRIM(concat(crc.identification_financial_responsible, 'Faturar')) AS Customer_Site, cast(IFNULL(rec.gross_value, 0) AS decimal(18, 2)) - cast(IFNULL(rec.administration_tax_value, 0) AS decimal(18, 2))AS comision, rec.credit_card_brand,rec.contract_number, rec.transaction_type, rec.billing_date, rec.price_list_value, rec.nsu,  rec.credit_date, rec.gross_value, rec.authorization_code, rec.erp_clustered_receivable_id,  rec.transaction_type payment_method FROM receivable rec INNER JOIN order_to_cash otc ON otc.id = rec.order_to_cash_id  INNER JOIN  customer crc  ON crc.identification_financial_responsible = otc.erp_receivable_customer_identification  LEFT JOIN  receivable_erp_configurations recg  ON recg.country = otc.country AND recg.origin_system = otc.origin_system AND recg.operation = otc.operation AND recg.transaction_type = rec.transaction_type AND recg.erp_business_unit = otc.erp_business_unit AND recg.memoline_setting = 'gross_value' AND recg.converted_smartfin = rec.converted_smartfin LEFT JOIN receipt_from_to_version rftv ON rftv.origin_system = otc.origin_system AND rftv.order_to_cash_operation = otc.operation AND rftv.erp_business_unit = otc.erp_business_unit AND rftv.receivable_transaction_type = rec.transaction_type AND rftv.erp_receivable_customer_identification = crc.identification_financial_responsible WHERE date_format(otc.created_at, '%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' AND otc.country = 'Peru'")
+        data = cur.fetchall()
+        resultado = []
+        for row in data:
+            content = {
+            'minifactu_id': row[0],
+            'created_at': row[1],
+            'erp_receipt_status_transaction': row[2],
+            'erp_business_unit': row[3],
+            'front_id': row[4],
+            'erp_subsidiary': row[5],
+            'erp_source_name': row[6],
+            'erp_type_transaction': row[7],
+            'erp_payments_terms': row[8],
+            'erp_currency_code': row[9],
+            'erp_currency_conversion_type': row[10],
+            'identification_financial_responsible': row[11],
+            'full_name': row[12],
+            'fecha_cobro': row[13],
+            'bank_number': row[14],
+            'bank_branch': row[15],
+            'bank_account': row[16],
+            'Receipt_Method': row[17],
+            'Customer_Site': row[18],
+            'comision': row[19],
+            'credit_card_brand': row[20],
+            'contract_number': row[21],
+            'transaction_type': row[22],
+            'billing_date': row[23],
+            'price_list_value': row[24],
+            'nsu': row[25],
+            'credit_date': row[26],
+            'gross_value': row[27],
+            'authorization_code': row[28],
+            'erp_clustered_receivable_id': row[29],
+            'payment_method': row[30]}
+            resultado.append(content)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+    finally:
+        cur.close()
 @app.route('/oic/<fecha_inicio>')
 def oic(fecha_inicio):
 
