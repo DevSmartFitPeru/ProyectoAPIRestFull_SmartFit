@@ -516,5 +516,26 @@ def oic(fecha_inicio):
     except Exception as e:
         print(e)
 
+@app.route('/invoice_latam')
+def invoice_latam():
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+        cursor.execute("select MONTH(payed_at) as month,year(payed_at) year,country,count(*) as Total_TX,sum(amount_paid) as Valorizado from prod_lake_modeled_refined.minifactu_otc where payed_at between cast('2023-01-01 00:00:00' as timestamp) and  cast('2023-12-31 00:00:00' as timestamp) and country in('Peru','Colômbia','México','Brasil','Chile') group by country,MONTH(payed_at) ,year(payed_at) order by Total_TX desc")
+        resultado = []
+        for row in cursor:
+            content = {
+            'month':row[0],
+            'year':row[1],
+            'country': row[2],
+            'Total_TX':row[3],
+            'Valorizado':row[4]}
+            resultado.append(content)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+    finally:
+             cursor.close()
+
 if __name__ == '__main__':
     app.run(debug=True)
