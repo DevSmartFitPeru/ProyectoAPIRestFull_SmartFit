@@ -1,6 +1,6 @@
 import requests as requests
 from flask import Flask, jsonify,request
-#from flask_mysqldb import MySQL
+from flask_mysqldb import MySQL
 from pyathena import connect
 
 
@@ -10,7 +10,7 @@ app.config['MYSQL_HOST'] = 'oic-db-prod.cgzshounia8v.us-east-1.rds.amazonaws.com
 app.config['MYSQL_USER'] = 'luis.azanero'
 app.config['MYSQL_PASSWORD'] = 'Lu1s0Ic2023'
 app.config['MYSQL_DB'] = 'oic_db'
-#mysql = MySQL(app)
+mysql = MySQL(app)
 
 
 @app.route('/products')
@@ -72,7 +72,7 @@ def location():
         resultado = []
         for row in cursor:
             content = {
-                'acronym':row[0] 
+                'acronym':row[0]
                  }
             resultado.append(content)
         return jsonify(resultado)
