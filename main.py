@@ -544,5 +544,5 @@ if server_name and ':' in server_name:
 else:
     port = 1247
     host = "0.0.0.0"
-if __name__ == '__main__':
-    app.run(debug=True,host=host, port=port)
+
+    app.run(host='0.0.0.0', port='1247')
