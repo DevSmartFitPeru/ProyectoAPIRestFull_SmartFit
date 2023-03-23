@@ -592,7 +592,6 @@ def alumnosactivos():
             'EDAD':row[15]}
             resultado.append(content)
         return jsonify(resultado)
-
     except Exception as e:
         print(e)
     finally:
@@ -601,24 +600,21 @@ def alumnosactivos():
 def promociones():
     try:
         cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-        cursor.execute("select a.id_unidade ,b.acronym ,a.plan_id ,a.id_promocao ,c.code , date_format(a.inicio_promocao, '%Y-%m-%d') a.inicio_promocao ,a.titulo_promocao ,a.descricao_promocao ,date_format(a.inicio_promocao, '%Y-%m-%d') a.inicio_promocao , date_format(a.fim_promocao, '%Y-%m-%d') a.fim_promocao ,date_format(a.load_datetime, '%Y-%m-%d') a.load_datetime from prod_lake_modeled_salesforce_latam.salesforce_dim_promotions_latam a left join prod_lake_modeled_refined.dim_locations b on a.id_unidade  = cast(b.id as varchar(20)) left join prod_lake_modeled_refined.dim_promotions c on a.id_promocao = cast(c.id as varchar(20)) where b.country = 'Peru'")
+        cursor.execute("select prom.id_unidade ID_UNIDAD,loca.acronym COD_UNIDAD,prom.plan_id PLAN_ID,prom.id_promocao ID_PROMOCION,dprom.code CODIGO_PROMOCION,prom.descricao_promocao DESC_PROMOCION,prom.inicio_promocao FECHA_INICIO,prom.fim_promocao FECHA_FIN,prom.load_datetime FECHA_CARGA from prod_lake_modeled_salesforce_latam.salesforce_dim_promotions_latam prom left join prod_lake_modeled_refined.dim_locations loca on prom.id_unidade  = cast(loca.id as varchar(20)) left join prod_lake_modeled_refined.dim_promotions dprom on prom.id_promocao = cast(dprom.id as varchar(20)) where loca.country = 'Peru'")
         resultado = []
         for row in cursor:
             content = {
-            'id_unidade':row[0],
-            'acronym':row[1],
-            'plan_id':row[2],
-            'id_promocao':row[3],
-            'code':row[4],
-            'inicio_promocao':row[5],
-            'titulo_promocao':row[6],
-            'descricao_promocao':row[7],
-            'inicio_promocao':row[8],
-            'fim_promocao':row[9],
-            'load_datetime':row[10]}
+            'ID_UNIDAD':row[0],
+            'COD_UNIDAD':row[1],
+            'PLAN_ID':row[2],
+            'ID_PROMOCION':row[3],
+            'CODIGO_PROMOCION':row[4],
+            'DESC_PROMOCION':row[5],
+            'FECHA_INICIO':row[6],
+            'FECHA_FIN':row[7],
+            'FECHA_CARGA':row[8]}
             resultado.append(content)
         return jsonify(resultado)
-
     except Exception as e:
         print(e)
     finally:
