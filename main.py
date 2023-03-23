@@ -537,6 +537,34 @@ def invoice_latam():
     finally:
              cursor.close()
 
+@app.route('/accesos/<fecha_inicio>/<fecha_fin>')
+def accesos(fecha_inicio,fecha_fin):
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+        cursor.execute("select ac.person_id CODIGO_CLIENTE, ac.purchase_id ID_COMPRA, cli.cliente_nome  NOMBRES, cli.flag_status_cliente  ESTADO_CLIENTE, ac.acronym_origin  CODIGO_UNIDAD, cli.dt_solicitacao_cancelamento  FECHA_CANCELAMIENTO, ac.purchase_reference_date FECHA_COMPRA, ac.plan_id ID_PLAN, cli.tipo_cancelamento PLAN_CLIENTE, null NRO_DOCUMENTO, null DUE_AT, ac.acronym_access ACCESO_ACRONYM, ac.access_date FECHA_ACCESO from prod_lake_modeled_refined.ft_acessos ac left join prod_lake_modeled_salesforce_latam.salesforce_dim_clientes_latam cli on cast(ac.person_id as varchar(20)) = cli.cliente_person_id where date_format (ac.access_date,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"'  and ac.country_access = 'Peru' and cli.cliente_pais = 'Peru'")
+        resultado = []
+        for row in cursor:
+            content = {
+            'CODIGO_CLIENTE':row[0],
+            'ID_COMPRA':row[1],
+            'NOMBRES':row[2],
+            'ESTADO_CLIENTE':row[3],
+            'CODIGO_UNIDAD':row[4],
+            'FECHA_CANCELAMIENTO':row[5],
+            'FECHA_COMPRA':row[6],
+            'ID_PLAN':row[7],
+            'PLAN_CLIENTE':row[8],
+            'NRO_DOCUMENTO':row[9],
+            'DUE_AT':row[10],
+            'ACCESO_ACRONYM':row[11],
+            'FECHA_ACCESO':row[12]}
+            resultado.append(content)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+    finally:
+             cursor.close()
 server_name = app.config['SERVER_NAME']
 if server_name and ':' in server_name:
     host, port = server_name.split(":")
