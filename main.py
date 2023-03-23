@@ -6,10 +6,10 @@ from pyathena import connect
 
 app = Flask(__name__)
 
-app.config['MYSQL_HOST'] = 'oic-db-prod.cgzshounia8v.us-east-1.rds.amazonaws.com'
-app.config['MYSQL_USER'] = 'luis.azanero'
-app.config['MYSQL_PASSWORD'] = 'Lu1s0Ic2023'
-app.config['MYSQL_DB'] = 'oic_db'
+app.config['MYSQL_HOST'] = '***********************'
+app.config['MYSQL_USER'] = '**********'
+app.config['MYSQL_PASSWORD'] = '****'
+app.config['MYSQL_DB'] = '********'
 #mysql = MySQL(app)
 
 
