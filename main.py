@@ -565,6 +565,38 @@ def accesos(fecha_inicio,fecha_fin):
         print(e)
     finally:
              cursor.close()
+
+@app.route('/alumnosactivos')
+def alumnosactivos():
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+        cursor.execute("select cliente_person_id  CODIGO_MATRICULA,sigla_unidade CODIGO_UNIDAD,nome_unidade UNIDAD ,cliente_nome NOMBRE_CLIENTE ,cliente_email EMAIL ,null NRO_DOCUMENTO,date_format(cliente_nascimento, '%Y-%m-%d')  FECHA_NACIMIENTO,cliente_celular CELULAR ,plan_name PLAN_ACTUAL,null FECHA_COMPRA,null FECHA_EXPIRACION_MEMBERSHIP,null PROMOCION,flag_status_catraca ESTADO_CATRACA_TORNIQUETE,null FECHA_VENCIMIENTO_MENSUALIDAD,valor_mensalidade PRECIO_MENSUALIDAD,cliente_idade EDADfrom prod_lake_modeled_salesforce_latam.salesforce_dim_clientes_latam where cliente_pais ='Peru'and flag_status_cliente ='Ativo'")
+        resultado = []
+        for row in cursor:
+            content = {
+            'CODIGO_MATRICULA':row[0],
+            'CODIGO_UNIDAD':row[1],
+            'UNIDAD':row[2],
+            'NOMBRE_CLIENTE':row[3],
+            'EMAIL':row[4],
+            'NRO_DOCUMENTO':row[5],
+            'FECHA_NACIMIENTO':row[6],
+            'CELULAR':row[7],
+            'PLAN_ACTUAL':row[8],
+            'FECHA_COMPRA':row[9],
+            'FECHA_EXPIRACION_MEMBERSHIP':row[10],
+            'PROMOCION':row[11],
+            'ESTADO_CATRACA_TORNIQUETE':row[12],
+            'FECHA_VENCIMIENTO_MENSUALIDAD':row[13],
+            'PRECIO_MENSUALIDAD':row[14],
+            'EDAD':row[15]}
+            resultado.append(content)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+    finally:
+             cursor.close()
 server_name = app.config['SERVER_NAME']
 if server_name and ':' in server_name:
     host, port = server_name.split(":")
