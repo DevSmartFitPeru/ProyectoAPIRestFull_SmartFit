@@ -597,6 +597,32 @@ def alumnosactivos():
         print(e)
     finally:
              cursor.close()
+@app.route('/promociones')
+def promociones():
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+        cursor.execute("select a.id_unidade ,b.acronym ,a.plan_id ,a.id_promocao ,c.code , date_format(a.inicio_promocao, '%Y-%m-%d') a.inicio_promocao ,a.titulo_promocao ,a.descricao_promocao ,date_format(a.inicio_promocao, '%Y-%m-%d') a.inicio_promocao , date_format(a.fim_promocao, '%Y-%m-%d') a.fim_promocao ,date_format(a.load_datetime, '%Y-%m-%d') a.load_datetime from prod_lake_modeled_salesforce_latam.salesforce_dim_promotions_latam a left join prod_lake_modeled_refined.dim_locations b on a.id_unidade  = cast(b.id as varchar(20)) left join prod_lake_modeled_refined.dim_promotions c on a.id_promocao = cast(c.id as varchar(20)) where b.country = 'Peru'")
+        resultado = []
+        for row in cursor:
+            content = {
+            'id_unidade':row[0],
+            'acronym':row[1],
+            'plan_id':row[2],
+            'id_promocao':row[3],
+            'code':row[4],
+            'inicio_promocao':row[5],
+            'titulo_promocao':row[6],
+            'descricao_promocao':row[7],
+            'inicio_promocao':row[8],
+            'fim_promocao':row[9],
+            'load_datetime':row[10]}
+            resultado.append(content)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+    finally:
+             cursor.close()
 server_name = app.config['SERVER_NAME']
 if server_name and ':' in server_name:
     host, port = server_name.split(":")
