@@ -545,4 +545,4 @@ else:
     port = 1247
     host = "0.0.0.0"
 
-    app.run(host='0.0.0.0', port='1247')
+    app.run(debug=True,host=host, port=port)
