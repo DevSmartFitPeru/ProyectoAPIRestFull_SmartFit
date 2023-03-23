@@ -537,5 +537,12 @@ def invoice_latam():
     finally:
              cursor.close()
 
+server_name = app.config['SERVER_NAME']
+if server_name and ':' in server_name:
+    host, port = server_name.split(":")
+    port = int(port)
+else:
+    port = 1247
+    host = "10.84.6.112"
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True,host=host, port=port)
