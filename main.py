@@ -570,7 +570,7 @@ def accesos(fecha_inicio,fecha_fin):
 def alumnosactivos():
     try:
         cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-        cursor.execute("select cliente_person_id  CODIGO_MATRICULA,sigla_unidade CODIGO_UNIDAD,nome_unidade UNIDAD ,cliente_nome NOMBRE_CLIENTE ,cliente_email EMAIL ,null NRO_DOCUMENTO,date_format(cliente_nascimento, '%Y-%m-%d')  FECHA_NACIMIENTO,cliente_celular CELULAR ,plan_name PLAN_ACTUAL,null FECHA_COMPRA,null FECHA_EXPIRACION_MEMBERSHIP,null PROMOCION,flag_status_catraca ESTADO_CATRACA_TORNIQUETE,null FECHA_VENCIMIENTO_MENSUALIDAD,valor_mensalidade PRECIO_MENSUALIDAD,cliente_idade EDADfrom prod_lake_modeled_salesforce_latam.salesforce_dim_clientes_latam where cliente_pais ='Peru'and flag_status_cliente ='Ativo'")
+        cursor.execute("select cliente_person_id  CODIGO_MATRICULA,sigla_unidade CODIGO_UNIDAD,nome_unidade UNIDAD ,cliente_nome NOMBRE_CLIENTE ,cliente_email EMAIL ,null NRO_DOCUMENTO,cliente_nascimento FECHA_NACIMIENTO,cliente_celular CELULAR ,plan_name PLAN_ACTUAL,null FECHA_COMPRA,null FECHA_EXPIRACION_MEMBERSHIP,null PROMOCION,flag_status_catraca ESTADO_CATRACA_TORNIQUETE,null FECHA_VENCIMIENTO_MENSUALIDAD,valor_mensalidade PRECIO_MENSUALIDAD,cliente_idade EDAD from prod_lake_modeled_salesforce_latam.salesforce_dim_clientes_latam where cliente_pais ='Peru'and flag_status_cliente ='Ativo'")
         resultado = []
         for row in cursor:
             content = {
