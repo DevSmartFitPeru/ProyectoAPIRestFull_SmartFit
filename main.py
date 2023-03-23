@@ -619,6 +619,32 @@ def promociones():
         print(e)
     finally:
              cursor.close()
+@app.route('/pricing')
+def pricing():
+        try:
+            cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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",s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/",region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+            cursor.execute("select prec.id ID_PRECIO,prec.location_id ID_UNIDAD,loc.acronym COD_UNIDAD,prec.plan_id PLAN_ID,pla.name NOMBRE_PLAN,prec.price PRECIO, date_format(prec.created_at, '%Y-%m-%d')  FECHA_CREACION,date_format(prec.updated_at, '%Y-%m-%d')  FECHA_ACTUALIZACION,prec.contract CONTRACT,prec.annual_prices PRECIO_ANUAL, date_format( prec.load_datetime, '%Y-%m-%d')  FECHA_CARGA,date_format(prec.reference_date, '%Y-%m-%d')  FECHA_REFERENCIA from prod_lake_modeled_refined.prices_empilhado prec left join prod_lake_modeled_refined.dim_locations loc on prec.location_id  = loc.id left join prod_lake_modeled_refined.dim_plans pla on prec.plan_id = pla.id where loc.country = 'Peru'and date(reference_date) = date_add('day',-1,current_date)")
+            resultado = []
+            for row in cursor:
+                content = {
+                        'ID_PRECIO': row[0],
+                        'ID_UNIDAD': row[1],
+                        'COD_UNIDAD': row[2],
+                        'PLAN_ID': row[3],
+                        'NOMBRE_PLAN': row[4],
+                        'PRECIO': row[5],
+                        'FECHA_CREACION': row[6],
+                        'FECHA_ACTUALIZACION': row[7],
+                        'CONTRACT': row[8],
+                        'PRECIO_ANUAL': row[9],
+                        'FECHA_CARGA': row[10],
+                        'FECHA_REFERENCIA': row[11]}
+                resultado.append(content)
+            return jsonify(resultado)
+        except Exception as e:
+            print(e)
+        finally:
+            cursor.close()
 server_name = app.config['SERVER_NAME']
 if server_name and ':' in server_name:
     host, port = server_name.split(":")
