@@ -645,6 +645,32 @@ def pricing():
             print(e)
         finally:
             cursor.close()
+@app.route('/unidades')
+def unidades():
+        try:
+            cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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",s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/",region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+            cursor.execute("select a.acronym CODIGO,a.name UNIDAD,a.cnpj RUC,a.official_name COMPANIA,null SERIE_BOLETAS,null SERIE_FACTURAS,a.active ESTADO,a.address DIRECCION,a.district DISTRITO,a.city PROVINCIA,a.state DEPARTAMENTO,a.presales_goal META,null AFORO,a.real_opening_date FECHA_INAGURACION,a.latitude LATITUD,a.longitude  LONGITUD, date_format(a.created_at, '%Y-%m-%d')  FECHA_DE_CREACION ,a.unified_location_id ,regional ,built_area from prod_lake_modeled_refined.dim_locations a where country ='Peru'")
+            resultado = []
+            for row in cursor:
+                content = {
+                        'ID_PRECIO': row[0],
+                        'ID_UNIDAD': row[1],
+                        'COD_UNIDAD': row[2],
+                        'PLAN_ID': row[3],
+                        'NOMBRE_PLAN': row[4],
+                        'PRECIO': row[5],
+                        'FECHA_CREACION': row[6],
+                        'FECHA_ACTUALIZACION': row[7],
+                        'CONTRACT': row[8],
+                        'PRECIO_ANUAL': row[9],
+                        'FECHA_CARGA': row[10],
+                        'FECHA_REFERENCIA': row[11]}
+                resultado.append(content)
+            return jsonify(resultado)
+        except Exception as e:
+            print(e)
+        finally:
+            cursor.close()
 server_name = app.config['SERVER_NAME']
 if server_name and ':' in server_name:
     host, port = server_name.split(":")
