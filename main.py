@@ -543,6 +543,6 @@ if server_name and ':' in server_name:
     port = int(port)
 else:
     port = 1247
-    host = "10.84.6.112"
+    host = "0.0.0.0"
 if __name__ == '__main__':
     app.run(debug=True,host=host, port=port)
