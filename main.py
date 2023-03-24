@@ -1,17 +1,26 @@
 import requests as requests
 from flask import Flask, jsonify,request
+import pyodbc
+
 #from flask_mysqldb import MySQL
 from pyathena import connect
 
 
 app = Flask(__name__)
 
-app.config['MYSQL_HOST'] = '***********************'
-app.config['MYSQL_USER'] = '**********'
-app.config['MYSQL_PASSWORD'] = '****'
-app.config['MYSQL_DB'] = '********'
+app.config['MYSQL_HOST'] = 'oic-db-prod.cgzshounia8v.us-east-1.rds.amazonaws.com'
+app.config['MYSQL_USER'] = 'luis.azanero'
+app.config['MYSQL_PASSWORD'] = 'Lu1s0Ic2023'
+app.config['MYSQL_DB'] = 'oic_db'
 #mysql = MySQL(app)
-
+def connection():
+    s = '10.84.6.199' #Your server name
+    d = 'PROCESOS_SMARTFIT'
+    u = 'sa' #Your login
+    p = '31zDM#OJ9f1g7h!&hsDR' #Your login password
+    cstr = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER='+s+';DATABASE='+d+';UID='+u+';PWD='+ p
+    conn = pyodbc.connect(cstr)
+    return conn
 
 @app.route('/products')
 def getAllProducts():
@@ -339,7 +348,7 @@ def sovos(fecha_inicio, fecha_fin):
 def error_minifactu(fecha_inicio,fecha_fin):
     try:
         cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-        cursor.execute("select id_payment,	status_pagamento,	date_format(payed_at, '%Y-%m-%d') payed_at,	amount_paid,	pag_elegivel,	propriedade,	forma_pagamento,	country,	acronym,	external_id,	minifactu_id,	errors,	validacao_erro,	retornou_minifactu,	error,	validacao_coerce,	retornou_front,	gross_value,	amount_pag_elegivel,	exportado_minifactu,	exportado_sistema_externo,	amount_validacao_coerce,	amount_retornou_minifactu,	amount_validacao_erro,	amount_retornou_front,	date_format(load_datetime, '%Y-%m-%d') load_datetime,	amount_exportado_sistema_externo,	amount_exportado_minifactu from prod_lake_modeled_refined.minifactu_otc where date_format(payed_at, '%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' and country='Peru'")
+        cursor.execute("select id_payment,	status_pagamento,	date_format(payed_at, '%Y-%m-%d') payed_at,	amount_paid,	pag_elegivel,	propriedade,	forma_pagamento,	country,	acronym,	external_id,	minifactu_id,	errors,	validacao_erro,	retornou_minifactu,	error,	validacao_coerce,	retornou_front,	gross_value,	amount_pag_elegivel,	exportado_minifactu,	exportado_sistema_externo,	amount_validacao_coerce,	amount_retornou_minifactu,	amount_validacao_erro,	amount_retornou_front,	date_format(load_datetime, '%Y-%m-%d') load_datetime,	amount_exportado_sistema_externo,	amount_exportado_minifactu from prod_lake_modeled_refined.minifactu_otc where date_format(payed_at, '%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' and country='Peru' and errors  is not null")
         resultado = []
         for row in cursor:
             content = { 'id_payment':row[0],
@@ -667,6 +676,65 @@ def unidades():
                         'FECHA_REFERENCIA': row[11]}
                 resultado.append(content)
             return jsonify(resultado)
+        except Exception as e:
+            print(e)
+        finally:
+            cursor.close()
+@app.route('/bin')
+def bin():
+        try:
+            cars = []
+            conn = connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT type AS TIPO,bin AS BIN,category AS CATEGORY,brand AS BRAND, alpha_3 AS ALPHA,country_name_x AS CONTRY_NAME FROM PROCESOS_SMARTFIT.SMARTFIT.BIN_TARJETAS_BANCOS")
+            for row in cursor.fetchall():
+                content = {
+                        'TIPO': row[0],
+                        'BIN': row[1],
+                        'CATEGORY': row[2],
+                        'BRAND': row[3],
+                        'ALPHA': row[4],
+                        'CONTRY_NAME': row[5]}
+                cars.append(content)
+            return jsonify(cars)
+        except Exception as e:
+            print(e)
+        finally:
+            cursor.close()
+@app.route('/relatorio/<fecha_inicio>/<fecha_fin>')
+def relatorio(fecha_inicio,fecha_fin):
+        try:
+            cars = []
+            conn = connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT REFERENCIA,MES,FECHA,DIA,UNIDAD,VALOR_PAGO,STATUS,TIPO_TARJETA,TIPO_COBRANZA,TENTATIVA_DE_COBRANZA,TENTATIVA_DE_COBRANZA_TOTAL,CODIGO_IMPORTACION,CODIGO_PAGAMENTO,TRY_CONVERT(date,FECHA_VENCIMIENTO_RELATORIO) FECHA_VENCIMIENTO_RELATORIO,TIPO_COBRANZA_2,CODIGO_RESPUESTA,DESCRIPCION_RESPUESTA,COD_ALUMNO,FECHA_IMPORTACION,ID_FIN,CODIGO_CONTRATO,NUMERO_DE_REFERENCIA_RELATORIO,PRODUCTO_RELATORIO FROM  DWH_SF.DW.MAESTRO_RELATORIO_FIN WHERE TRY_CONVERT(DATE,FECHA,103) BETWEEN '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"'")
+            for row in cursor.fetchall():
+                content = {
+                        'REFERENCIA': row[0],
+                        'MES': row[1],
+                        'FECHA': row[2],
+                        'DIA': row[3],
+                        'UNIDAD': row[4],
+                        'VALOR_PAGO': row[5],
+                        'STATUS': row[6],
+                        'TIPO_TARJETA': row[7],
+                        'TIPO_COBRANZA': row[8],
+                        'TENTATIVA_DE_COBRANZA': row[9],
+                        'TENTATIVA_DE_COBRANZA_TOTAL': row[10],
+                        'CODIGO_IMPORTACION': row[11],
+                        'CODIGO_PAGAMENTO': row[12],
+                        'FECHA_VENCIMIENTO_RELATORIO': row[13],
+                        'TIPO_COBRANZA_2': row[14],
+                        'CODIGO_RESPUESTA': row[15],
+                        'DESCRIPCION_RESPUESTA': row[16],
+                        'COD_ALUMNO': row[17],
+                        'FECHA_IMPORTACION': row[18],
+                        'ID_FIN': row[19],
+                        'CODIGO_CONTRATO': row[20],
+                        'NUMERO_DE_REFERENCIA_RELATORIO': row[21],
+                        'PRODUCTO_RELATORIO': row[22]}
+                cars.append(content)
+            return jsonify(cars)
         except Exception as e:
             print(e)
         finally:
