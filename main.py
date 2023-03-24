@@ -699,8 +699,8 @@ def bin():
             return jsonify(cars)
         except Exception as e:
             print(e)
-
-
+        finally:
+            cursor.close()
 @app.route('/relatorio/<fecha_inicio>/<fecha_fin>')
 def relatorio(fecha_inicio,fecha_fin):
         try:
@@ -737,7 +737,8 @@ def relatorio(fecha_inicio,fecha_fin):
             return jsonify(cars)
         except Exception as e:
             print(e)
-       
+        finally:
+            cursor.close()
 server_name = app.config['SERVER_NAME']
 if server_name and ':' in server_name:
     host, port = server_name.split(":")
