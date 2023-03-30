@@ -767,6 +767,48 @@ def ingenico(fecha_inicio,fecha_fin):
             return jsonify(cars)
         except Exception as e:
             print(e)
+@app.route('/salescoporrate/<fecha_inicio>/<fecha_fin>')
+def salescoporrate(fecha_inicio,fecha_fin):
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+        cursor.execute("select dpc.country PAIS ,dpc.state DEPARTAMENTO ,dpc.acronym COD_UNIDAD ,dpc.purchase_created_at FECHA_COMPRA,dpc.purchase_id  ID_COMPRA,dpc.person_id  COD_MATRICULA,dpc.count_purchases CONT_COMPRA,dpc.purchase_original_plan_id  ID_PLAN_ORIGINAL_COMPRA,dpc.membership_current_plan_id  ID_MEMBRESIA_PLAN_ACTUAL,dpc.purchase_current_plan_id ID_PLAN_COMPRA_ACTUAL,dpc.membership_current_start_at FECHA_INICIO_MEMBRESIA_ACTUAL,dpc.membership_current_end_at  FECHA_FIN_MEMBRESIA_ACTUAL,dpc.membership_payed_at FECHA_PAGO_MEMBRESIA,dpc.membership_payment_state ESTADO_PAGO_MEMBRESIA,dpc.membership_original_amount_paid MONTO_PAGADA,dpc.membership_price PRECIO_MEMBRESIA,dpc.purchase_kind TIPO_COMPRA,dpc.cancelling_reason_other RAZON_CANCELAMIENTO,dpc.purchase_promotion_id ID_PROMOCION,pr.starts_at FECHA_INICIO_PROMOCION,pr.expires_at FECHA_FIN_PROMCION,pr.code COD_PROMOCION,pr.available_codes CANT_COD_ASIGNADOS,pr.description DESC_PROMOCION,pr.title TITULO_PROM,pr.active ESTADO_PROM from prod_lake_modeled_refined.daily_purchases_caches dpc left join prod_lake_modeled_refined.dim_promotions pr on dpc.purchase_promotion_id = pr.id where country ='Peru'and date_format (purchase_created_at,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' and dpc.purchase_promotion_id is not null")
+        resultado = []
+        for row in cursor:
+            content = {
+                        'PAIS': row[0],
+                        'DEPARTAMENTO': row[1],
+                        'COD_UNIDAD': row[2],
+                        'FECHA_COMPRA': row[3],
+                        'ID_COMPRA': row[4],
+                        'COD_MATRICULA': row[5],
+                        'CONT_COMPRA': row[6],
+                        'ID_PLAN_ORIGINAL_COMPRA': row[7],
+                        'ID_MEMBRESIA_PLAN_ACTUAL': row[8],
+                        'ID_PLAN_COMPRA_ACTUAL': row[9],
+                        'FECHA_INICIO_MEMBRESIA_ACTUAL': row[10],
+                        'FECHA_FIN_MEMBRESIA_ACTUAL': row[11],
+                        'FECHA_PAGO_MEMBRESIA': row[12],
+                        'ESTADO_PAGO_MEMBRESIA': row[13],
+                        'MONTO_PAGADA': row[14],
+                        'PRECIO_MEMBRESIA': row[15],
+                        'TIPO_COMPRA': row[16],
+                        'RAZON_CANCELAMIENTO': row[17],
+                        'ID_PROMOCION': row[18],
+                        'FECHA_INICIO_PROMOCION': row[19],
+                        'FECHA_FIN_PROMCION': row[20],
+                        'COD_PROMOCION': row[21],
+                        'CANT_COD_ASIGNADOS': row[22],
+                        'DESC_PROMOCION': row[23],
+                        'TITULO_PROM': row[24],
+                        'ESTADO_PROM': row[25]}
+            resultado.append(content)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+    finally:
+             cursor.close()
+
 server_name = app.config['SERVER_NAME']
 if server_name and ':' in server_name:
     host, port = server_name.split(":")
