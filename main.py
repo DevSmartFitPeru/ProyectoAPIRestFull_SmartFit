@@ -1,7 +1,7 @@
 import requests as requests
 from flask import Flask, jsonify,request
 import pyodbc
-
+import pymssql
 #from flask_mysqldb import MySQL
 from pyathena import connect
 
@@ -13,14 +13,8 @@ app.config['MYSQL_USER'] = 'luis.azanero'
 app.config['MYSQL_PASSWORD'] = 'Lu1s0Ic2023'
 app.config['MYSQL_DB'] = 'oic_db'
 #mysql = MySQL(app)
-def connection():
-    s = '10.84.6.199' #Your server name
-    d = 'PROCESOS_SMARTFIT'
-    u = 'sa' #Your login
-    p = '31zDM#OJ9f1g7h!&hsDR' #Your login password
-    cstr = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER='+s+';DATABASE='+d+';UID='+u+';PWD='+ p
-    conn = pyodbc.connect(cstr)
-    return conn
+
+conn = pymssql.connect(server='10.84.6.199', user='sa', password='31zDM#OJ9f1g7h!&hsDR', database='DWH_SF')
 
 @app.route('/products')
 def getAllProducts():
@@ -684,7 +678,6 @@ def unidades():
 def bin():
         try:
             cars = []
-            conn = connection()
             cursor = conn.cursor()
             cursor.execute("SELECT type AS TIPO,bin AS BIN,category AS CATEGORY,brand AS BRAND, alpha_3 AS ALPHA,country_name_x AS CONTRY_NAME FROM PROCESOS_SMARTFIT.SMARTFIT.BIN_TARJETAS_BANCOS")
             for row in cursor.fetchall():
@@ -704,7 +697,6 @@ def bin():
 def relatorio(fecha_inicio,fecha_fin):
         try:
             cars = []
-            conn = connection()
             cursor = conn.cursor()
             cursor.execute("SELECT REFERENCIA,MES,FECHA,DIA,UNIDAD,VALOR_PAGO,STATUS,TIPO_TARJETA,TIPO_COBRANZA,TENTATIVA_DE_COBRANZA,TENTATIVA_DE_COBRANZA_TOTAL,CODIGO_IMPORTACION,CODIGO_PAGAMENTO,TRY_CONVERT(date,FECHA_VENCIMIENTO_RELATORIO) FECHA_VENCIMIENTO_RELATORIO,TIPO_COBRANZA_2,CODIGO_RESPUESTA,DESCRIPCION_RESPUESTA,COD_ALUMNO,FECHA_IMPORTACION,ID_FIN,CODIGO_CONTRATO,NUMERO_DE_REFERENCIA_RELATORIO,PRODUCTO_RELATORIO FROM  DWH_SF.DW.MAESTRO_RELATORIO_FIN WHERE TRY_CONVERT(DATE,FECHA,103) BETWEEN '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"'")
             for row in cursor.fetchall():
