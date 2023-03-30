@@ -14,7 +14,7 @@ app.config['MYSQL_PASSWORD'] = 'Lu1s0Ic2023'
 app.config['MYSQL_DB'] = 'oic_db'
 #mysql = MySQL(app)
 
-conn = pymssql.connect(server='10.84.6.199', user='sa', password='31zDM#OJ9f1g7h!&hsDR', database='DWH_SF')
+conn = pymssql.connect(server='10.84.6.199', user='sa', password='31zDM#OJ9f1g7h!&hsDR', database='VOXIVA')
 
 @app.route('/products')
 def getAllProducts():
@@ -679,7 +679,7 @@ def bin():
         try:
             cars = []
             cursor = conn.cursor()
-            cursor.execute("SELECT type AS TIPO,bin AS BIN,category AS CATEGORY,brand AS BRAND, alpha_3 AS ALPHA,country_name_x AS CONTRY_NAME FROM PROCESOS_SMARTFIT.SMARTFIT.BIN_TARJETAS_BANCOS")
+            cursor.execute("SELECT TIPO,BIN,CATEGORY,BRAND,ALPHA,CONTRY_NAME FROM VOXIVA.DWH.BIN")
             for row in cursor.fetchall():
                 content = {
                         'TIPO': row[0],
@@ -698,7 +698,7 @@ def relatorio(fecha_inicio,fecha_fin):
         try:
             cars = []
             cursor = conn.cursor()
-            cursor.execute("SELECT REFERENCIA,MES,FECHA,DIA,UNIDAD,VALOR_PAGO,STATUS,TIPO_TARJETA,TIPO_COBRANZA,TENTATIVA_DE_COBRANZA,TENTATIVA_DE_COBRANZA_TOTAL,CODIGO_IMPORTACION,CODIGO_PAGAMENTO,TRY_CONVERT(date,FECHA_VENCIMIENTO_RELATORIO) FECHA_VENCIMIENTO_RELATORIO,TIPO_COBRANZA_2,CODIGO_RESPUESTA,DESCRIPCION_RESPUESTA,COD_ALUMNO,FECHA_IMPORTACION,ID_FIN,CODIGO_CONTRATO,NUMERO_DE_REFERENCIA_RELATORIO,PRODUCTO_RELATORIO FROM  DWH_SF.DW.MAESTRO_RELATORIO_FIN WHERE TRY_CONVERT(DATE,FECHA,103) BETWEEN '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"'")
+            cursor.execute("SELECT REFERENCIA,	MES,	FECHA,	DIA,	UNIDAD,	VALOR_PAGO,	STATUS,	TIPO_TARJETA,	TIPO_COBRANZA,	TENTATIVA_DE_COBRANZA,	TENTATIVA_DE_COBRANZA_TOTAL,	CODIGO_IMPORTACION,	CODIGO_PAGAMENTO,	FECHA_VENCIMIENTO_RELATORIO,	TIPO_COBRANZA_2,	CODIGO_RESPUESTA,	DESCRIPCION_RESPUESTA,	COD_ALUMNO,	FECHA_IMPORTACION,	ID_FIN,	CODIGO_CONTRATO,	NUMERO_DE_REFERENCIA_RELATORIO,	PRODUCTO_RELATORIO FROM VOXIVA.DWH.MAESTRO_RELATORIO_FIN  WHERE TRY_CONVERT(DATE,FECHA,103) BETWEEN '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"'")
             for row in cursor.fetchall():
                 content = {
                         'REFERENCIA': row[0],
@@ -728,7 +728,45 @@ def relatorio(fecha_inicio,fecha_fin):
             return jsonify(cars)
         except Exception as e:
             print(e)
-
+@app.route('/ingenico/<fecha_inicio>/<fecha_fin>')
+def ingenico(fecha_inicio,fecha_fin):
+        try:
+            cars = []
+            cursor = conn.cursor()
+            cursor.execute("SELECT COMERCIO_ORDEN_ID,FECHA,UNIDAD,VALOR_PAGO,ESTADO,TIPO_COBRANZA,TENTATIVA_DE_COBRANZA_TOTAL,CODIGO_PAGAMENTO,COD_ALUMNO,MODO_INGRESO,TIPO,COMERCIO,COD_PRODUCTO,PAN,COD_ACCION,MOTIVO_NEGACION,RESP_COD_MOP,RESP_MOP,RESP_COD_PSP,RESP_PSP,RESP_EXT_PSP,BIN,PLANN,FECHA_VENCIMIENTO,FECHA_PUBLICACION,NRO_COMPROBANTE,TIPO_COMPROBANTE FROM VOXIVA.DWH.INGENICO WHERE CONVERT(DATE,FECHA,103) BETWEEN '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"'")
+            for row in cursor.fetchall():
+                content = {
+                        'COMERCIO_ORDEN_ID': row[0],
+                            'FECHA': row[1],
+                            'UNIDAD': row[2],
+                            'VALOR_PAGO': row[3],
+                            'ESTADO': row[4],
+                            'TIPO_COBRANZA': row[5],
+                            'TENTATIVA_DE_COBRANZA_TOTAL': row[6],
+                            'CODIGO_PAGAMENTO': row[7],
+                            'COD_ALUMNO': row[8],
+                            'MODO_INGRESO': row[9],
+                            'TIPO': row[10],
+                            'COMERCIO': row[11],
+                            'COD_PRODUCTO': row[12],
+                            'PAN': row[13],
+                            'COD_ACCION': row[14],
+                            'MOTIVO_NEGACION': row[15],
+                            'RESP_COD_MOP': row[16],
+                            'RESP_MOP': row[17],
+                            'RESP_COD_PSP': row[18],
+                            'RESP_PSP': row[19],
+                            'RESP_EXT_PSP': row[20],
+                            'BIN': row[21],
+                            'PLANN': row[22],
+                            'FECHA_VENCIMIENTO': row[23],
+                            'FECHA_PUBLICACION': row[24],
+                            'NRO_COMPROBANTE': row[25],
+                            'TIPO_COMPROBANTE': row[26]}
+                cars.append(content)
+            return jsonify(cars)
+        except Exception as e:
+            print(e)
 server_name = app.config['SERVER_NAME']
 if server_name and ':' in server_name:
     host, port = server_name.split(":")
