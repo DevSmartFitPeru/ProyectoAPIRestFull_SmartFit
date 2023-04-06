@@ -808,7 +808,37 @@ def salescoporate(fecha_inicio,fecha_fin):
         print(e)
     finally:
              cursor.close()
+@app.route('/inadimplentes_analitico/<fecha_inicio>/<fecha_fin>')
+def inadimplentes_analitico(fecha_inicio,fecha_fin):
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+        cursor.execute("SELECT id_pagamento,	matricula,	nome,	email,	pais,	estado,	cidade,	sigla_unidade,	nome_unidade,	plano,	tipo_pagamento,	tipo_pagamento_conceito,	valor,	status,	date_format (data_vencimento,'%Y-%m-%d') data_vencimento,	status_usuario FROM prod_lake_modeled_refined.inadimplentes_analitico where pais='Peru' and date_format (data_vencimento,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"'")
+        resultado = []
+        for row in cursor:
+            content = {
+                        'id_pagamento': row[0],
+                        'matricula': row[1],
+                        'nome': row[2],
+                        'email': row[3],
+                        'pais': row[4],
+                        'estado': row[5],
+                        'cidade': row[6],
+                        'sigla_unidade': row[7],
+                        'nome_unidade': row[8],
+                        'plano': row[9],
+                        'tipo_pagamento': row[10],
+                        'tipo_pagamento_conceito': row[11],
+                        'valor': row[12],
+                        'status': row[13],
+                        'data_vencimento': row[14],
+                        'status_usuario': row[15]}
+            resultado.append(content)
+        return jsonify(resultado)
 
+    except Exception as e:
+        print(e)
+    finally:
+             cursor.close()
 server_name = app.config['SERVER_NAME']
 if server_name and ':' in server_name:
     host, port = server_name.split(":")
