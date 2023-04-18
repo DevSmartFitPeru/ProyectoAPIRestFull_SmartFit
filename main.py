@@ -829,12 +829,15 @@ def vta_corporativa(fecha_inicio,fecha_fin):
             'codigos_asignados':row[9],
             'desc_promocion':row[10],
             'nombre_cliente':row[11],
-            'genero_cliente':row[12],
-            'estado_cliente':row[13],
-            'ultimo_acesso':row[14],
-            'nombre_plan':row[15],
-            'nombre_unidad':row[16],
-            'tipo_compra':row[17]}
+            'edad_cliente':row[12],
+            'genero_cliente':row[13],
+            'estado_cliente':row[14],
+            'f_ultimo_acesso':row[15],
+            'nombre_plan':row[16],
+            'estado_pago':row[17],
+            'sigla_unidad':row[18],
+            'nombre_unidad':row[19],
+            'tipo_compra':row[20]}
             resultado.append(content)
         return jsonify(resultado)
 
