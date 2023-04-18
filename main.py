@@ -808,6 +808,41 @@ def salescoporate(fecha_inicio,fecha_fin):
         print(e)
     finally:
              cursor.close()
+
+@app.route('/vta_corporativa/<fecha_inicio>/<fecha_fin>')
+def vta_corporativa(fecha_inicio,fecha_fin):
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+        cursor.execute("select date_format(pur.created_at,'%Y-%m-%d') fecha_de_compra ,date_format(pur.confirmed_at,'%Y-%m-%d')  fecha_de_confirm_compra ,date_format(pur.cancelled,'%Y-%m-%d')  fecha_cancel_compra,pur.promotion_id id_promocion ,substring(prom.code,3,20)empresa,prom.code  cod_promocion,pur.person_id cod_matricula,date_format(prom.starts_at,'%Y-%m-%d')  fecha_inicio_promocion,date_format(prom.expires_at,'%Y-%m-%d') fecha_fin_promocion,prom.available_codes codigos_asignados,prom.description desc_promocion,cli.cliente_nome nombre_cliente,cli.cliente_idade  edad_cliente,cli.cliente_genero genero_cliente,cli.flag_status_cliente  estado_cliente,cli.ultimo_acesso ultimo_acesso,cli.plan_name nombre_plan,cli.pgto_status estado_pago,cli.sigla_unidade sigla_unidad,cli.nome_unidade nombre_unidad,'Compra Personal'tipo_compra from prod_lake_ss_refined.purchases pur left join prod_lake_modeled_refined.dim_promotions prom on pur.promotion_id = prom.id left join prod_lake_modeled_salesforce_latam.salesforce_dim_clientes_latam cli on cast(pur.person_id as varchar(50)) = cli.cliente_person_id where date_format (pur.confirmed_at,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' and lower(prom.description)  like '%personal%' and lower(cli.cliente_pais) = 'peru'  union all select date_format(pur.created_at,'%Y-%m-%d') fecha_de_compra,date_format(pur.confirmed_at,'%Y-%m-%d')  fecha_de_confirm_compra,date_format(pur.cancelled,'%Y-%m-%d')  fecha_cancel_compra,pur.promotion_id id_promocion ,null empresa,prom.code  cod_promocion,pur.person_id cod_matricula,date_format(prom.starts_at,'%Y-%m-%d')  fecha_inicio_promocion,date_format(prom.expires_at,'%Y-%m-%d') fecha_fin_promocion,prom.available_codes codigos_asignados,prom.description desc_promocion,cli.cliente_nome nombre_cliente,cli.cliente_idade  edad_cliente,cli.cliente_genero genero_cliente,cli.flag_status_cliente  estado_cliente,cli.ultimo_acesso ultimo_acesso,cli.plan_name nombre_plan,cli.pgto_status estado_pago,cli.sigla_unidade sigla_unidad,cli.nome_unidade nombre_unidad,'Compra Anticipada'tipo_compra from prod_lake_ss_refined.purchases pur left join prod_lake_modeled_refined.dim_promotions prom on pur.promotion_id = prom.id  left join prod_lake_modeled_salesforce_latam.salesforce_dim_clientes_latam cli on cast(pur.person_id as varchar(50)) = cli.cliente_person_id  where date_format (pur.confirmed_at,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' and lower(prom.description)  like '%anticipada%' and lower(cli.cliente_pais) = 'peru' ")
+        resultado = []
+        for row in cursor:
+            content = {
+            'fecha_de_compra':row[0],
+            'fecha_de_confirm_compra':row[1],
+            'fecha_cancel_compra':row[2],
+            'id_promocion':row[3],
+            'empresa':row[4],
+            'cod_promocion':row[5],
+            'cod_matricula':row[6],
+            'fecha_inicio_promocion':row[7],
+            'fecha_fin_promocion':row[8],
+            'codigos_asignados':row[9],
+            'desc_promocion':row[10],
+            'nombre_cliente':row[11],
+            'genero_cliente':row[12],
+            'estado_cliente':row[13],
+            'ultimo_acesso':row[14],
+            'nombre_plan':row[15],
+            'nombre_unidad':row[16],
+            'tipo_compra':row[17]}
+            resultado.append(content)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+    finally:
+             cursor.close()
+
 @app.route('/inadimplentes_analitico/<fecha_inicio>/<fecha_fin>')
 def inadimplentes_analitico(fecha_inicio,fecha_fin):
     try:
