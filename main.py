@@ -578,170 +578,7 @@ def unidades():
         finally:
             cursor.close()
 
-@app.route('/accesos/<fecha_inicio>/<fecha_fin>')
-def accesos(fecha_inicio,fecha_fin):
-    try:
-        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-        cursor.execute("select ac.person_id CODIGO_CLIENTE, ac.purchase_id ID_COMPRA, cli.cliente_nome  NOMBRES, cli.flag_status_cliente  ESTADO_CLIENTE, ac.acronym_origin  CODIGO_UNIDAD, cli.dt_solicitacao_cancelamento  FECHA_CANCELAMIENTO, date_format(ac.purchase_reference_date, '%Y-%m-%d')  FECHA_COMPRA, ac.plan_id ID_PLAN, cli.plan_name PLAN_CLIENTE, null NRO_DOCUMENTO, date_format(ac.purchase_reference_date, '%Y-%m-%d') DUE_AT, ac.acronym_access ACCESO_ACRONYM, date_format(ac.access_date, '%Y-%m-%d') FECHA_ACCESO from prod_lake_modeled_refined.ft_acessos ac left join prod_lake_modeled_salesforce_latam.salesforce_dim_clientes_latam cli on cast(ac.person_id as varchar(20)) = cli.cliente_person_id where date_format (ac.access_date,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"'  and ac.country_access = 'Peru' and cli.cliente_pais = 'Peru'")
-        resultado = []
-        for row in cursor:
-            content = {
-            'CODIGO_CLIENTE':row[0],
-            'ID_COMPRA':row[1],
-            'NOMBRES':row[2],
-            'ESTADO_CLIENTE':row[3],
-            'CODIGO_UNIDAD':row[4],
-            'FECHA_CANCELAMIENTO':row[5],
-            'FECHA_COMPRA':row[6],
-            'ID_PLAN':row[7],
-            'PLAN_CLIENTE':row[8],
-            'NRO_DOCUMENTO':row[9],
-            'DUE_AT':row[10],
-            'ACCESO_ACRONYM':row[11],
-            'FECHA_ACCESO':row[12]}
-            resultado.append(content)
-        return jsonify(resultado)
-
-    except Exception as e:
-        print(e)
-    finally:
-             cursor.close()
-
-@app.route('/alumnosactivos')
-def alumnosactivos():
-    try:
-        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-        cursor.execute("select cliente_person_id  CODIGO_MATRICULA,sigla_unidade CODIGO_UNIDAD,nome_unidade UNIDAD ,cliente_nome NOMBRE_CLIENTE ,cliente_email EMAIL ,null NRO_DOCUMENTO,cliente_nascimento FECHA_NACIMIENTO,cliente_celular CELULAR ,plan_name PLAN_ACTUAL,null FECHA_COMPRA,null FECHA_EXPIRACION_MEMBERSHIP,null PROMOCION,flag_status_catraca ESTADO_CATRACA_TORNIQUETE,null FECHA_VENCIMIENTO_MENSUALIDAD,valor_mensalidade PRECIO_MENSUALIDAD,cliente_idade EDAD from prod_lake_modeled_salesforce_latam.salesforce_dim_clientes_latam where cliente_pais ='Peru'and flag_status_cliente ='Ativo'")
-        resultado = []
-        for row in cursor:
-            content = {
-            'CODIGO_MATRICULA':row[0],
-            'CODIGO_UNIDAD':row[1],
-            'UNIDAD':row[2],
-            'NOMBRE_CLIENTE':row[3],
-            'EMAIL':row[4],
-            'NRO_DOCUMENTO':row[5],
-            'FECHA_NACIMIENTO':row[6],
-            'CELULAR':row[7],
-            'PLAN_ACTUAL':row[8],
-            'FECHA_COMPRA':row[9],
-            'FECHA_EXPIRACION_MEMBERSHIP':row[10],
-            'PROMOCION':row[11],
-            'ESTADO_CATRACA_TORNIQUETE':row[12],
-            'FECHA_VENCIMIENTO_MENSUALIDAD':row[13],
-            'PRECIO_MENSUALIDAD':row[14],
-            'EDAD':row[15]}
-            resultado.append(content)
-        return jsonify(resultado)
-    except Exception as e:
-        print(e)
-    finally:
-             cursor.close()
-@app.route('/promociones')
-def promociones():
-    try:
-        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-        cursor.execute("select prom.id_unidade ID_UNIDAD,loca.acronym COD_UNIDAD,prom.plan_id PLAN_ID,prom.id_promocao ID_PROMOCION,dprom.code CODIGO_PROMOCION,prom.descricao_promocao DESC_PROMOCION,prom.inicio_promocao FECHA_INICIO,prom.fim_promocao FECHA_FIN,prom.load_datetime FECHA_CARGA from prod_lake_modeled_salesforce_latam.salesforce_dim_promotions_latam prom left join prod_lake_modeled_refined.dim_locations loca on prom.id_unidade  = cast(loca.id as varchar(20)) left join prod_lake_modeled_refined.dim_promotions dprom on prom.id_promocao = cast(dprom.id as varchar(20)) where loca.country = 'Peru'")
-        resultado = []
-        for row in cursor:
-            content = {
-            'ID_UNIDAD':row[0],
-            'COD_UNIDAD':row[1],
-            'PLAN_ID':row[2],
-            'ID_PROMOCION':row[3],
-            'CODIGO_PROMOCION':row[4],
-            'DESC_PROMOCION':row[5],
-            'FECHA_INICIO':row[6],
-            'FECHA_FIN':row[7],
-            'FECHA_CARGA':row[8]}
-            resultado.append(content)
-        return jsonify(resultado)
-    except Exception as e:
-        print(e)
-    finally:
-             cursor.close()
-@app.route('/alumnoshistoricos/<fecha_inicio>/<fecha_fin>')
-def alumnoshistoricos(fecha_inicio,fecha_fin):
-    try:
-        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-        cursor.execute(" select person_id PERSON_ID ,name NAME_CLIENTE ,acronym ACRONYM ,plan PLAN_NAME ,date_format(purchase_date,'%Y-%m-%d') PURCHASE_DATE ,documento DOCUMENTO ,cached_status CACHED_STATUS ,date_format(cancel_date,'%Y-%m-%d') CANCEL_DATE ,cancelling_reason CANCELLING_REASON ,country COUNTRY ,kind KIND ,replace(promotion_title,'|',' ') PROMOTION_TITLE ,email EMAIL ,date_format(birthday,'%Y-%m-%d') BIRTHDAY ,gender GENDER ,state STATE ,city CITY ,age AGE ,contrato CONTRATO from prod_lake_modeled_refined.alunos_historico where lower(country)='peru' and date_format (purchase_date,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' ")
-        resultado = []
-        for row in cursor:
-            content = {
-            'PERSON_ID':row[0],
-            'NAME_CLIENTE':row[1],
-            'ACRONYM':row[2],
-            'PLAN_NAME':row[3],
-            'PURCHASE_DATE':row[4],
-            'DOCUMENTO':row[5],
-            'CACHED_STATUS':row[6],
-            'CANCEL_DATE':row[7],
-            'CANCELLING_REASON':row[8],
-            'COUNTRY':row[9],
-            'KIND':row[10],
-            'PROMOTION_TITLE':row[11],
-            'EMAIL':row[12],
-            'BIRTHDAY':row[13],
-            'GENDER':row[14],
-            'STATE':row[15],
-            'CITY':row[16],
-            'AGE':row[17],
-            'CONTRATO':row[18],
-            }
-            resultado.append(content)
-        return jsonify(resultado)
-
-    except Exception as e:
-        print(e)
-    finally:
-             cursor.close()
-
-@app.route('/pricing')
-def pricing():
-        try:
-            cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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",s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/",region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-            cursor.execute("select prec.id ID_PRECIO,prec.location_id ID_UNIDAD,loc.acronym COD_UNIDAD,prec.plan_id PLAN_ID,pla.name NOMBRE_PLAN,prec.price PRECIO, date_format(prec.created_at, '%Y-%m-%d')  FECHA_CREACION,date_format(prec.updated_at, '%Y-%m-%d')  FECHA_ACTUALIZACION,prec.contract CONTRACT,prec.annual_prices PRECIO_ANUAL, date_format( prec.load_datetime, '%Y-%m-%d')  FECHA_CARGA,date_format(prec.reference_date, '%Y-%m-%d')  FECHA_REFERENCIA from prod_lake_modeled_refined.prices_empilhado prec left join prod_lake_modeled_refined.dim_locations loc on prec.location_id  = loc.id left join prod_lake_modeled_refined.dim_plans pla on prec.plan_id = pla.id where loc.country = 'Peru'and date(reference_date) = date_add('day',-1,current_date)")
-            resultado = []
-            for row in cursor:
-                content = {
-                        'ID_PRECIO': row[0],
-                        'ID_UNIDAD': row[1],
-                        'COD_UNIDAD': row[2],
-                        'PLAN_ID': row[3],
-                        'NOMBRE_PLAN': row[4],
-                        'PRECIO': row[5],
-                        'FECHA_CREACION': row[6],
-                        'FECHA_ACTUALIZACION': row[7],
-                        'CONTRACT': row[8],
-                        'PRECIO_ANUAL': row[9],
-                        'FECHA_CARGA': row[10],
-                        'FECHA_REFERENCIA': row[11]}
-                resultado.append(content)
-            return jsonify(resultado)
-        except Exception as e:
-            print(e)
-        finally:
-            cursor.close()
-
-@app.route('/bin')
-def bin():
-        try:
-            cars = []
-            cursor = conn.cursor()
-            cursor.execute("SELECT TIPO,BIN,CATEGORY,BRAND,ALPHA,CONTRY_NAME FROM VOXIVA.DWH.BIN")
-            for row in cursor.fetchall():
-                content = {
-                        'TIPO': row[0],
-                        'BIN': row[1],
-                        'CATEGORY': row[2],
-                        'BRAND': row[3],
-                        'ALPHA': row[4],
-                        'CONTRY_NAME': row[5]}
-                cars.append(content)
-            return jsonify(cars)
-        except Exception as e:
-            print(e)
-
+#ws_relatorio
 @app.route('/relatorio/<fecha_inicio>/<fecha_fin>')
 def relatorio(fecha_inicio,fecha_fin):
         try:
@@ -777,6 +614,32 @@ def relatorio(fecha_inicio,fecha_fin):
             return jsonify(cars)
         except Exception as e:
             print(e)
+
+#ws_promociones
+@app.route('/promociones')
+def promociones():
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+        cursor.execute("select prom.id_unidade ID_UNIDAD,loca.acronym COD_UNIDAD,prom.plan_id PLAN_ID,prom.id_promocao ID_PROMOCION,dprom.code CODIGO_PROMOCION,prom.descricao_promocao DESC_PROMOCION,prom.inicio_promocao FECHA_INICIO,prom.fim_promocao FECHA_FIN,prom.load_datetime FECHA_CARGA from prod_lake_modeled_salesforce_latam.salesforce_dim_promotions_latam prom left join prod_lake_modeled_refined.dim_locations loca on prom.id_unidade  = cast(loca.id as varchar(20)) left join prod_lake_modeled_refined.dim_promotions dprom on prom.id_promocao = cast(dprom.id as varchar(20)) where loca.country = 'Peru'")
+        resultado = []
+        for row in cursor:
+            content = {
+            'ID_UNIDAD':row[0],
+            'COD_UNIDAD':row[1],
+            'PLAN_ID':row[2],
+            'ID_PROMOCION':row[3],
+            'CODIGO_PROMOCION':row[4],
+            'DESC_PROMOCION':row[5],
+            'FECHA_INICIO':row[6],
+            'FECHA_FIN':row[7],
+            'FECHA_CARGA':row[8]}
+            resultado.append(content)
+        return jsonify(resultado)
+    except Exception as e:
+        print(e)
+    finally:
+             cursor.close()
+#ws_ingenico
 @app.route('/ingenico/<fecha_inicio>/<fecha_fin>')
 def ingenico(fecha_inicio,fecha_fin):
         try:
@@ -816,6 +679,41 @@ def ingenico(fecha_inicio,fecha_fin):
             return jsonify(cars)
         except Exception as e:
             print(e)
+
+#ws_inadimplentes_analitico
+@app.route('/inadimplentes_analitico/<fecha_inicio>/<fecha_fin>')
+def inadimplentes_analitico(fecha_inicio,fecha_fin):
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+        cursor.execute("SELECT id_pagamento,	matricula,	nome,	email,	pais,	estado,	cidade,	sigla_unidade,	nome_unidade,	plano,	tipo_pagamento,	tipo_pagamento_conceito,	valor,	status,	date_format (data_vencimento,'%Y-%m-%d') data_vencimento,	status_usuario FROM prod_lake_modeled_refined.inadimplentes_analitico where pais='Peru' and date_format (data_vencimento,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"'")
+        resultado = []
+        for row in cursor:
+            content = {
+                        'id_pagamento': row[0],
+                        'matricula': row[1],
+                        'nome': row[2],
+                        'email': row[3],
+                        'pais': row[4],
+                        'estado': row[5],
+                        'cidade': row[6],
+                        'sigla_unidade': row[7],
+                        'nome_unidade': row[8],
+                        'plano': row[9],
+                        'tipo_pagamento': row[10],
+                        'tipo_pagamento_conceito': row[11],
+                        'valor': row[12],
+                        'status': row[13],
+                        'data_vencimento': row[14],
+                        'status_usuario': row[15]}
+            resultado.append(content)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+    finally:
+             cursor.close()
+
+#ws_cancelamientos
 @app.route('/cancelamientos/<fecha_inicio>/<fecha_fin>')
 def cancelamientos(fecha_inicio,fecha_fin):
     try:
@@ -849,6 +747,156 @@ def cancelamientos(fecha_inicio,fecha_fin):
         print(e)
     finally:
              cursor.close()
+
+#ws_bin
+@app.route('/bin')
+def bin():
+        try:
+            cars = []
+            cursor = conn.cursor()
+            cursor.execute("SELECT TIPO,BIN,CATEGORY,BRAND,ALPHA,CONTRY_NAME FROM VOXIVA.DWH.BIN")
+            for row in cursor.fetchall():
+                content = {
+                        'TIPO': row[0],
+                        'BIN': row[1],
+                        'CATEGORY': row[2],
+                        'BRAND': row[3],
+                        'ALPHA': row[4],
+                        'CONTRY_NAME': row[5]}
+                cars.append(content)
+            return jsonify(cars)
+        except Exception as e:
+            print(e)
+
+#ws_alumnoshistoricos
+@app.route('/alumnoshistoricos/<fecha_inicio>/<fecha_fin>')
+def alumnoshistoricos(fecha_inicio,fecha_fin):
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+        cursor.execute(" select person_id PERSON_ID ,name NAME_CLIENTE ,acronym ACRONYM ,plan PLAN_NAME ,date_format(purchase_date,'%Y-%m-%d') PURCHASE_DATE ,documento DOCUMENTO ,cached_status CACHED_STATUS ,date_format(cancel_date,'%Y-%m-%d') CANCEL_DATE ,cancelling_reason CANCELLING_REASON ,country COUNTRY ,kind KIND ,replace(promotion_title,'|',' ') PROMOTION_TITLE ,email EMAIL ,date_format(birthday,'%Y-%m-%d') BIRTHDAY ,gender GENDER ,state STATE ,city CITY ,age AGE ,contrato CONTRATO from prod_lake_modeled_refined.alunos_historico where lower(country)='peru' and date_format (purchase_date,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' ")
+        resultado = []
+        for row in cursor:
+            content = {
+            'PERSON_ID':row[0],
+            'NAME_CLIENTE':row[1],
+            'ACRONYM':row[2],
+            'PLAN_NAME':row[3],
+            'PURCHASE_DATE':row[4],
+            'DOCUMENTO':row[5],
+            'CACHED_STATUS':row[6],
+            'CANCEL_DATE':row[7],
+            'CANCELLING_REASON':row[8],
+            'COUNTRY':row[9],
+            'KIND':row[10],
+            'PROMOTION_TITLE':row[11],
+            'EMAIL':row[12],
+            'BIRTHDAY':row[13],
+            'GENDER':row[14],
+            'STATE':row[15],
+            'CITY':row[16],
+            'AGE':row[17],
+            'CONTRATO':row[18],
+            }
+            resultado.append(content)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+    finally:
+             cursor.close()
+
+#ws_precios
+@app.route('/pricing')
+def pricing():
+        try:
+            cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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",s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/",region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+            cursor.execute("select prec.id ID_PRECIO,prec.location_id ID_UNIDAD,loc.acronym COD_UNIDAD,prec.plan_id PLAN_ID,pla.name NOMBRE_PLAN,prec.price PRECIO, date_format(prec.created_at, '%Y-%m-%d')  FECHA_CREACION,date_format(prec.updated_at, '%Y-%m-%d')  FECHA_ACTUALIZACION,prec.contract CONTRACT,prec.annual_prices PRECIO_ANUAL, date_format( prec.load_datetime, '%Y-%m-%d')  FECHA_CARGA,date_format(prec.reference_date, '%Y-%m-%d')  FECHA_REFERENCIA from prod_lake_modeled_refined.prices_empilhado prec left join prod_lake_modeled_refined.dim_locations loc on prec.location_id  = loc.id left join prod_lake_modeled_refined.dim_plans pla on prec.plan_id = pla.id where loc.country = 'Peru'and date(reference_date) = date_add('day',-1,current_date)")
+            resultado = []
+            for row in cursor:
+                content = {
+                        'ID_PRECIO': row[0],
+                        'ID_UNIDAD': row[1],
+                        'COD_UNIDAD': row[2],
+                        'PLAN_ID': row[3],
+                        'NOMBRE_PLAN': row[4],
+                        'PRECIO': row[5],
+                        'FECHA_CREACION': row[6],
+                        'FECHA_ACTUALIZACION': row[7],
+                        'CONTRACT': row[8],
+                        'PRECIO_ANUAL': row[9],
+                        'FECHA_CARGA': row[10],
+                        'FECHA_REFERENCIA': row[11]}
+                resultado.append(content)
+            return jsonify(resultado)
+        except Exception as e:
+            print(e)
+        finally:
+            cursor.close()
+#ws_alumnosactivos
+@app.route('/alumnosactivos')
+def alumnosactivos():
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+        cursor.execute(" select matricula CODIGO_MATRICULA ,sigla CODIGO_UNIDAD ,unidad UNIDAD ,nombre NOMBRE_CLIENTE ,correo EMAIL ,documento NRO_DOCUMENTO ,date_format(fecha_nacimiento,'%Y-%m-%d') FECHA_NACIMIENTO ,celular CELULAR ,plan PLAN_ACTUAL ,date_format(fecha_compra,'%Y-%m-%d') FECHA_COMPRA ,date_format(fecha_mensualidad,'%Y-%m-%d') FECHA_MENSUALIDAD ,date_format(vencimento_mensualidad,'%Y-%m-%d') FECHA_VENCIMIENTO_MENSUALIDAD ,replace(promocion, '|',' ')PROMOCION ,status_trinquete ESTADO_CATRACA_TORNIQUETE ,precio_mensualidad PRECIO_MENSUALIDAD ,edad EDAD ,date_format(load_datetime,'%Y-%m-%d') FECHA_PROCESAMIENTO from prod_lake_modeled_refined.alunos_ativos where lower(pais) = 'peru' ")
+        resultado = []
+        for row in cursor:
+            content = {
+            'CODIGO_MATRICULA':row[0],
+            'CODIGO_UNIDAD':row[1],
+            'UNIDAD':row[2],
+            'NOMBRE_CLIENTE':row[3],
+            'EMAIL':row[4],
+            'NRO_DOCUMENTO':row[5],
+            'FECHA_NACIMIENTO':row[6],
+            'CELULAR':row[7],
+            'PLAN_ACTUAL':row[8],
+            'FECHA_COMPRA':row[9],
+            'FECHA_MENSUALIDAD':row[10],
+            'FECHA_VENCIMIENTO_MENSUALIDAD':row[13],
+            'PROMOCION':row[11],
+            'ESTADO_CATRACA_TORNIQUETE':row[12],
+            'PRECIO_MENSUALIDAD':row[14],
+            'EDAD':row[15],
+            'FECHA_PROCESAMIENTO':row[15]}
+            resultado.append(content)
+        return jsonify(resultado)
+    except Exception as e:
+        print(e)
+    finally:
+             cursor.close()
+
+
+#ws_accesos
+@app.route('/accesos/<fecha_inicio>/<fecha_fin>')
+def accesos(fecha_inicio,fecha_fin):
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+        cursor.execute("select ac.person_id CODIGO_CLIENTE, ac.purchase_id ID_COMPRA, cli.cliente_nome  NOMBRES, cli.flag_status_cliente  ESTADO_CLIENTE, ac.acronym_origin  CODIGO_UNIDAD, cli.dt_solicitacao_cancelamento  FECHA_CANCELAMIENTO, date_format(ac.purchase_reference_date, '%Y-%m-%d')  FECHA_COMPRA, ac.plan_id ID_PLAN, cli.plan_name PLAN_CLIENTE, null NRO_DOCUMENTO, date_format(ac.purchase_reference_date, '%Y-%m-%d') DUE_AT, ac.acronym_access ACCESO_ACRONYM, date_format(ac.access_date, '%Y-%m-%d') FECHA_ACCESO from prod_lake_modeled_refined.ft_acessos ac left join prod_lake_modeled_salesforce_latam.salesforce_dim_clientes_latam cli on cast(ac.person_id as varchar(20)) = cli.cliente_person_id where date_format (ac.access_date,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"'  and ac.country_access = 'Peru' and cli.cliente_pais = 'Peru'")
+        resultado = []
+        for row in cursor:
+            content = {
+            'CODIGO_CLIENTE':row[0],
+            'ID_COMPRA':row[1],
+            'NOMBRES':row[2],
+            'ESTADO_CLIENTE':row[3],
+            'CODIGO_UNIDAD':row[4],
+            'FECHA_CANCELAMIENTO':row[5],
+            'FECHA_COMPRA':row[6],
+            'ID_PLAN':row[7],
+            'PLAN_CLIENTE':row[8],
+            'NRO_DOCUMENTO':row[9],
+            'DUE_AT':row[10],
+            'ACCESO_ACRONYM':row[11],
+            'FECHA_ACCESO':row[12]}
+            resultado.append(content)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+    finally:
+             cursor.close()
+
+#AQUI TERMINA API REST DE VOXIVA
 
 @app.route('/salescoporate/<fecha_inicio>/<fecha_fin>')
 def salescoporate(fecha_inicio,fecha_fin):
@@ -929,37 +977,7 @@ def vta_corporativa(fecha_inicio,fecha_fin):
     finally:
              cursor.close()
 
-@app.route('/inadimplentes_analitico/<fecha_inicio>/<fecha_fin>')
-def inadimplentes_analitico(fecha_inicio,fecha_fin):
-    try:
-        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-        cursor.execute("SELECT id_pagamento,	matricula,	nome,	email,	pais,	estado,	cidade,	sigla_unidade,	nome_unidade,	plano,	tipo_pagamento,	tipo_pagamento_conceito,	valor,	status,	date_format (data_vencimento,'%Y-%m-%d') data_vencimento,	status_usuario FROM prod_lake_modeled_refined.inadimplentes_analitico where pais='Peru' and date_format (data_vencimento,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"'")
-        resultado = []
-        for row in cursor:
-            content = {
-                        'id_pagamento': row[0],
-                        'matricula': row[1],
-                        'nome': row[2],
-                        'email': row[3],
-                        'pais': row[4],
-                        'estado': row[5],
-                        'cidade': row[6],
-                        'sigla_unidade': row[7],
-                        'nome_unidade': row[8],
-                        'plano': row[9],
-                        'tipo_pagamento': row[10],
-                        'tipo_pagamento_conceito': row[11],
-                        'valor': row[12],
-                        'status': row[13],
-                        'data_vencimento': row[14],
-                        'status_usuario': row[15]}
-            resultado.append(content)
-        return jsonify(resultado)
 
-    except Exception as e:
-        print(e)
-    finally:
-             cursor.close()
 server_name = app.config['SERVER_NAME']
 if server_name and ':' in server_name:
     host, port = server_name.split(":")
