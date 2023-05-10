@@ -807,28 +807,28 @@ def ingenico(fecha_inicio,fecha_fin):
 def cancelamientos(fecha_inicio,fecha_fin):
     try:
         cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-        cursor.execute(" select acronym UNIDADE_GIMNASIO ,propriedade PROPRIEDADE_PROPRIEDAD ,matricula MATRICULA_C ,nome NOME_NOMBRE_C ,document_cpf DOCUMENT_CPF_C ,date_format(birthday,'%Y-%m-%d') DATA_FECHA_NASCIMENTO ,age IDADE ,email EMAIL_CORREO ,tipo_cancelamento TIPO_CANCELAMENTO_CANCELACION ,motivo_cancelamento MOTIVO_RAZON ,replace(promocao,'|',' ') PROMOCAO_PROMOCION ,pais PAIS_C ,date_format(data_pedido_cancelamento,'%Y-%m-%d')  DATA_PEDIDO_CANCELAMENTO_C ,date_format(data_cancelamento,'%Y-%m-%d') DATA_CANCELAMENTO_FECHA ,plano_plan PLANO_PLAN_C ,date_format(data_compra_plano,'%Y-%m-%d') DATA_COMPRA_PLAN ,telefono TELEFONO_C ,date_format(load_datetime,'%Y-%m-%d') LOAD_DATETIME_C from prod_lake_modeled_refined.cancelados where lower(pais) = 'peru' and date_format(data_cancelamento,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' ")
+        cursor.execute(" select acronym UNIDADE_GIMNASIO ,propriedade PROPRIEDADE_PROPRIEDAD ,matricula MATRICULA ,nome NOME_NOMBRE ,document_cpf DOCUMENT_CPF ,date_format(birthday,'%Y-%m-%d') DATA_FECHA_NASCIMENTO ,age IDADE ,email EMAIL_CORREO ,tipo_cancelamento TIPO_CANCELAMENTO_CANCELACION ,motivo_cancelamento MOTIVO_RAZON ,replace(promocao,'|',' ') PROMOCAO_PROMOCION ,pais PAIS ,date_format(data_pedido_cancelamento,'%Y-%m-%d')  DATA_PEDIDO_CANCELAMENTO ,date_format(data_cancelamento,'%Y-%m-%d') DATA_CANCELAMENTO_FECHA ,plano_plan PLANO_PLAN ,date_format(data_compra_plano,'%Y-%m-%d') DATA_COMPRA_PLAN ,telefono TELEFONO ,date_format(load_datetime,'%Y-%m-%d') LOAD_DATETIME from prod_lake_modeled_refined.cancelados where lower(pais) = 'peru' and date_format(data_cancelamento,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' ")
         resultado = []
         for row in cursor:
             content = {
             'UNIDADE_GIMNASIO':row[0],
             'PROPRIEDADE_PROPRIEDAD':row[1],
-            'MATRICULA_C':row[2],
-            'NOME_NOMBRE_C':row[3],
-            'DOCUMENT_CPF_C':row[4],
+            'MATRICULA':row[2],
+            'NOME_NOMBRE':row[3],
+            'DOCUMENT_CPF':row[4],
             'DATA_FECHA_NASCIMENTO':row[5],
             'IDADE':row[6],
             'EMAIL_CORREO':row[7],
             'TIPO_CANCELAMENTO_CANCELACION':row[8],
             'MOTIVO_RAZON':row[9],
             'PROMOCAO_PROMOCION':row[10],
-            'PAIS_C':row[11],
-            'DATA_PEDIDO_CANCELAMENTO_C':row[12],
+            'PAIS':row[11],
+            'DATA_PEDIDO_CANCELAMENTO':row[12],
             'DATA_CANCELAMENTO_FECHA':row[13],
-            'PLANO_PLAN_C':row[14],
+            'PLANO_PLAN':row[14],
             'DATA_COMPRA_PLAN':row[15],
-            'TELEFONO_C':row[16],
-            'LOAD_DATETIME_C':row[17]}
+            'TELEFONO':row[16],
+            'LOAD_DATETIME':row[17]}
             resultado.append(content)
         return jsonify(resultado)
 
