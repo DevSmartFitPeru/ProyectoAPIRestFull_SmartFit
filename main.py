@@ -540,6 +540,44 @@ def invoice_latam():
     finally:
              cursor.close()
 
+#AQUI INICIA LOS API REST PARA VOXIVA
+
+#ws_unidades
+@app.route('/unidades')
+def unidades():
+        try:
+            cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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",s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/",region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+            cursor.execute("select a.acronym CODIGO ,a.name UNIDAD ,a.cnpj RUC ,a.official_name COMPANIA ,null SERIE_BOLETAS ,null SERIE_FACTURAS ,a.active ESTADO ,a.address DIRECCION ,a.district DISTRITO ,a.city PROVINCIA ,a.state DEPARTAMENTO ,a.presales_goal META ,case when acronym = 'AQPAQP1' then 1873 when acronym = 'AQPCAY1' then 1195 when acronym = 'AQPCAY2' then 1200 when acronym = 'AQPCOL1' then 1493 when acronym = 'AQPPAU1' then 1557 when acronym = 'CAJCAJ1' then 1110 when acronym = 'CALBEL1' then 1280 when acronym = 'CALCAL1' then 1239 when acronym = 'CHICLA1' then 1345 when acronym = 'CHICLA2' then 1505 when acronym = 'CUSCUS1' then 1209 when acronym = 'HUAHUA1' then 1096 when acronym = 'HUAHUA2' then 1023 when acronym = 'ICAICA1' then 1381 when acronym = 'LIMANI1' then 1355 when acronym = 'LIMATE1' then 1355 when acronym = 'LIMBRE1' then 1345 when acronym = 'LIMCHO1' then 1924 when acronym = 'LIMCHO2' then 1306 when acronym = 'LIMCHO3' then 1383 when acronym = 'LIMCOM1' then 1736 when acronym = 'LIMIND1' then 1930 when acronym = 'LIMIND2' then 1474 when acronym = 'LIMISI1' then 1237 when acronym = 'LIMISI2' then 1089 when acronym = 'LIMLIM1' then 1560 when acronym = 'LIMLVC1' then 1374 when acronym = 'LIMLVC2' then 1426 when acronym = 'LIMMGD1' then 1107 when acronym = 'LIMMIG1' then 1602 when acronym = 'LIMMIR1' then 1064 when acronym = 'LIMMIR2' then 1764 when acronym = 'LIMMIR3' then 1342 when acronym = 'LIMMIR4' then 1019 when acronym = 'LIMMOL1' then 1563 when acronym = 'LIMMOL2' then 1390 when acronym = 'LIMPUL1' then 1205 when acronym = 'LIMSBO1' then 2148 when acronym = 'LIMSJL1' then 1155 when acronym = 'LIMSJM1' then 1297 when acronym = 'LIMSUQ1' then 1547 when acronym = 'LIMSUQ2' then 1575 when acronym = 'LIMSUR1' then 1320 when acronym = 'LIMSUR2' then 1514 when acronym = 'LIMSUR3' then 2209 when acronym = 'LIMSUR4' then 1639 when acronym = 'LIMSUR5' then 1390 when acronym = 'LIMSUR6' then 1246 when acronym = 'LIMSUR7' then 1611 when acronym = 'LIMVMT1' then 1023 when acronym = 'PIUCAS1' then 1185 when acronym = 'PIUPIU1' then 1392 when acronym = 'PIUPIU2' then 1333 when acronym = 'PIUPIU3' then 1187 when acronym = 'TRUTRU1' then 1514 when acronym = 'TRUTRU2' then 1757 else 0 end AFORO ,a.real_opening_date FECHA_INAGURACION ,a.latitude LATITUD ,a.longitude  LONGITUD ,date_format(a.created_at, '%Y-%m-%d')FECHA_DE_CREACION ,a.unified_location_id ID_UBICACION ,regional REGIONAL, built_area AREA_TOTAL from prod_lake_modeled_refined.dim_locations a where country ='Peru'")
+            resultado = []
+            for row in cursor:
+                content = {
+                        'CODIGO': row[0],
+                        'UNIDAD': row[1],
+                        'RUC': row[2],
+                        'COMPANIA': row[3],
+                        'SERIE_BOLETAS': row[4],
+                        'SERIE_FACTURAS': row[5],
+                        'ESTADO': row[6],
+                        'DIRECCION': row[7],
+                        'DISTRITO': row[8],
+                        'PROVINCIA': row[9],
+                        'DEPARTAMENTO': row[10],
+                        'META': row[11],
+                        'AFORO': row[12],
+                        'FECHA_INAGURACION': row[13],
+                        'LATITUD': row[14],
+                        'LONGITUD': row[15],
+                        'FECHA_DE_CREACION': row[16],
+                        'ID_UBICACION': row[17],
+                        'REGIONAL': row[18],
+                        'AREA_TOTAL': row[19]}
+                resultado.append(content)
+            return jsonify(resultado)
+        except Exception as e:
+            print(e)
+        finally:
+            cursor.close()
+
 @app.route('/accesos/<fecha_inicio>/<fecha_fin>')
 def accesos(fecha_inicio,fecha_fin):
     try:
@@ -684,32 +722,7 @@ def pricing():
             print(e)
         finally:
             cursor.close()
-@app.route('/unidades')
-def unidades():
-        try:
-            cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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",s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/",region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-            cursor.execute("select a.acronym CODIGO,a.name UNIDAD,a.cnpj RUC,a.official_name COMPANIA,null SERIE_BOLETAS,null SERIE_FACTURAS,a.active ESTADO,a.address DIRECCION,a.district DISTRITO,a.city PROVINCIA,a.state DEPARTAMENTO,a.presales_goal META,null AFORO,a.real_opening_date FECHA_INAGURACION,a.latitude LATITUD,a.longitude  LONGITUD, date_format(a.created_at, '%Y-%m-%d')  FECHA_DE_CREACION ,a.unified_location_id ,regional ,built_area from prod_lake_modeled_refined.dim_locations a where country ='Peru'")
-            resultado = []
-            for row in cursor:
-                content = {
-                        'ID_PRECIO': row[0],
-                        'ID_UNIDAD': row[1],
-                        'COD_UNIDAD': row[2],
-                        'PLAN_ID': row[3],
-                        'NOMBRE_PLAN': row[4],
-                        'PRECIO': row[5],
-                        'FECHA_CREACION': row[6],
-                        'FECHA_ACTUALIZACION': row[7],
-                        'CONTRACT': row[8],
-                        'PRECIO_ANUAL': row[9],
-                        'FECHA_CARGA': row[10],
-                        'FECHA_REFERENCIA': row[11]}
-                resultado.append(content)
-            return jsonify(resultado)
-        except Exception as e:
-            print(e)
-        finally:
-            cursor.close()
+
 @app.route('/bin')
 def bin():
         try:
