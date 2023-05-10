@@ -623,7 +623,7 @@ def promociones():
     finally:
              cursor.close()
 @app.route('/alumnoshistoricos/<fecha_inicio>/<fecha_fin>')
-def accesos(fecha_inicio,fecha_fin):
+def alumnoshistoricos(fecha_inicio,fecha_fin):
     try:
         cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
         cursor.execute(" select person_id PERSON_ID ,name NAME_CLIENTE ,acronym ACRONYM ,plan PLAN_NAME ,date_format(purchase_date,'%Y-%m-%d') PURCHASE_DATE ,documento DOCUMENTO ,cached_status CACHED_STATUS ,date_format(cancel_date,'%Y-%m-%d') CANCEL_DATE ,cancelling_reason CANCELLING_REASON ,country COUNTRY ,kind KIND ,replace(promotion_title,'|',' ') PROMOTION_TITLE ,email EMAIL ,date_format(birthday,'%Y-%m-%d') BIRTHDAY ,gender GENDER ,state STATE ,city CITY ,age AGE ,contrato CONTRATO from prod_lake_modeled_refined.alunos_historico where lower(country)='peru' and date_format (purchase_date,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' ")
