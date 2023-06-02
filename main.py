@@ -584,7 +584,7 @@ def relatorio(fecha_inicio,fecha_fin):
         try:
             cars = []
             cursor = conn.cursor()
-            cursor.execute("SELECT REFERENCIA,	MES,	FECHA,	DIA,	UNIDAD,	VALOR_PAGO,	STATUS,	TIPO_TARJETA,	TIPO_COBRANZA,	TENTATIVA_DE_COBRANZA,	TENTATIVA_DE_COBRANZA_TOTAL,	CODIGO_IMPORTACION,	CODIGO_PAGAMENTO,	FECHA_VENCIMIENTO_RELATORIO,	TIPO_COBRANZA_2,	CODIGO_RESPUESTA,	DESCRIPCION_RESPUESTA,	COD_ALUMNO,	FECHA_IMPORTACION,	ID_FIN,	CODIGO_CONTRATO,	NUMERO_DE_REFERENCIA_RELATORIO,	PRODUCTO_RELATORIO FROM VOXIVA.DWH.MAESTRO_RELATORIO_FIN  WHERE TRY_CONVERT(DATE,FECHA,103) BETWEEN '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"'")
+            cursor.execute("SELECT REFERENCIA,	MES,	FECHA,	DIA,	UNIDAD,	VALOR_PAGO,	STATUS,	TIPO_TARJETA,	TIPO_COBRANZA,	TENTATIVA_DE_COBRANZA,	TENTATIVA_DE_COBRANZA_TOTAL,	CODIGO_IMPORTACION,	CODIGO_PAGAMENTO,	FECHA_VENCIMIENTO_RELATORIO,	TIPO_COBRANZA_2,	CODIGO_RESPUESTA,	DESCRIPCION_RESPUESTA,	COD_ALUMNO,	FECHA_IMPORTACION,	ID_FIN,	CODIGO_CONTRATO,	NUMERO_DE_REFERENCIA_RELATORIO,	PRODUCTO_RELATORIO FROM [10.84.6.199].VOXIVA.DWH.MAESTRO_RELATORIO_FIN  WHERE TRY_CONVERT(DATE,FECHA,103) BETWEEN '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"'")
             for row in cursor.fetchall():
                 content = {
                         'REFERENCIA': row[0],
@@ -611,10 +611,11 @@ def relatorio(fecha_inicio,fecha_fin):
                         'NUMERO_DE_REFERENCIA_RELATORIO': row[21],
                         'PRODUCTO_RELATORIO': row[22]}
                 cars.append(content)
-            return jsonify(cars)
+                return jsonify(cars)
         except Exception as e:
             print(e)
-
+        finally:
+            cursor.close()
 #ws_promociones
 @app.route('/promociones')
 def promociones():
