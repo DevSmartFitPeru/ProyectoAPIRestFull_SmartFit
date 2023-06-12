@@ -834,11 +834,11 @@ def pricing():
         finally:
             cursor.close()
 #ws_alumnosactivos
-@app.route('/alumnosactivos')
+@app.route('/alumnosactivos/<plan>')
 def alumnosactivos():
     try:
         cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-        cursor.execute(" select matricula CODIGO_MATRICULA ,sigla CODIGO_UNIDAD ,unidad UNIDAD ,nombre NOMBRE_CLIENTE ,correo EMAIL ,documento NRO_DOCUMENTO ,date_format(fecha_nacimiento,'%Y-%m-%d') FECHA_NACIMIENTO ,celular CELULAR ,plan PLAN_ACTUAL ,date_format(fecha_compra,'%Y-%m-%d') FECHA_COMPRA ,date_format(fecha_mensualidad,'%Y-%m-%d') FECHA_MENSUALIDAD ,date_format(vencimento_mensualidad,'%Y-%m-%d') FECHA_VENCIMIENTO_MENSUALIDAD ,replace(promocion, '|',' ')PROMOCION ,status_trinquete ESTADO_CATRACA_TORNIQUETE ,precio_mensualidad PRECIO_MENSUALIDAD ,edad EDAD ,date_format(load_datetime,'%Y-%m-%d') FECHA_PROCESAMIENTO from prod_lake_modeled_refined.alunos_ativos where lower(pais) = 'peru' ")
+        cursor.execute(" select matricula CODIGO_MATRICULA ,sigla CODIGO_UNIDAD ,unidad UNIDAD ,nombre NOMBRE_CLIENTE ,correo EMAIL ,documento NRO_DOCUMENTO ,date_format(fecha_nacimiento,'%Y-%m-%d') FECHA_NACIMIENTO ,celular CELULAR ,plan PLAN_ACTUAL ,date_format(fecha_compra,'%Y-%m-%d') FECHA_COMPRA ,date_format(fecha_mensualidad,'%Y-%m-%d') FECHA_EXPIRACION_MEMBERSHIP ,replace(promocion, '|',' ')PROMOCION ,status_trinquete ESTADO_CATRACA_TORNIQUETE ,date_format(vencimento_mensualidad,'%Y-%m-%d') FECHA_VENCIMIENTO_MENSUALIDAD ,precio_mensualidad PRECIO_MENSUALIDAD ,edad EDAD ,date_format(load_datetime,'%Y-%m-%d') FECHA_PROCESAMIENTO from prod_lake_modeled_refined.alunos_ativos where lower(pais) = 'peru' and plan = '"+str(plan)+"' ")
         resultado = []
         for row in cursor:
             content = {
@@ -852,13 +852,13 @@ def alumnosactivos():
             'CELULAR':row[7],
             'PLAN_ACTUAL':row[8],
             'FECHA_COMPRA':row[9],
-            'FECHA_MENSUALIDAD':row[10],
-            'FECHA_VENCIMIENTO_MENSUALIDAD':row[13],
+            'FECHA_EXPIRACION_MEMBERSHIP':row[10],
             'PROMOCION':row[11],
             'ESTADO_CATRACA_TORNIQUETE':row[12],
+            'FECHA_VENCIMIENTO_MENSUALIDAD':row[13],
             'PRECIO_MENSUALIDAD':row[14],
             'EDAD':row[15],
-            'FECHA_PROCESAMIENTO':row[15]}
+            'FECHA_PROCESAMIENTO':row[16]}
             resultado.append(content)
         return jsonify(resultado)
     except Exception as e:
