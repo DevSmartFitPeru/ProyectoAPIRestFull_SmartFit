@@ -868,11 +868,11 @@ def alumnosactivos():
 
 
 #ws_accesos
-@app.route('/accesos/<fecha_inicio>/<fecha_fin>')
-def accesos(fecha_inicio,fecha_fin):
+@app.route('/accesos/<plan>/<fecha_inicio>/<fecha_fin>')
+def accesos(plan,fecha_inicio,fecha_fin):
     try:
         cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-        cursor.execute("select person_id CODIGO_CLIENTE ,purchase_id ID_COMPRA ,name NOMBRES ,cached_status ESTADO_CLIENTE ,acronym CODIGO_UNIDAD ,date_format(cancelled,'%Y-%m-%d')FECHA_CANCELAMIENTO ,date_format(purchase_date ,'%Y-%m-%d')FECHA_COMPRA ,plan PLAN_CLIENTE ,document NRO_DOCUMENTO ,date_format(due_at ,'%Y-%m-%d') DUE_AT  ,access_acronym  ACCESO_ACRONYM ,date_format(date,'%Y-%m-%d') FECHA_ACCESO from prod_lake_modeled_refined.acessos_detalhados where lower(pais) ='peru' and date_format (date,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"'")
+        cursor.execute("select person_id CODIGO_CLIENTE ,purchase_id ID_COMPRA ,name NOMBRES ,cached_status ESTADO_CLIENTE ,acronym CODIGO_UNIDAD ,date_format(cancelled,'%Y-%m-%d')FECHA_CANCELAMIENTO ,date_format(purchase_date ,'%Y-%m-%d')FECHA_COMPRA ,plan PLAN_CLIENTE ,document NRO_DOCUMENTO ,date_format(due_at ,'%Y-%m-%d') DUE_AT  ,access_acronym  ACCESO_ACRONYM ,date_format(date,'%Y-%m-%d') FECHA ,date_format(NOW(),'%Y-%m-%d') FECHA_PROCESAMIENTO  from prod_lake_modeled_refined.acessos_detalhados where lower(pais) ='peru' and plan = '"+str(plan)+"' and date_format (date,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"'")
         resultado = []
         for row in cursor:
             content = {
@@ -887,7 +887,9 @@ def accesos(fecha_inicio,fecha_fin):
             'NRO_DOCUMENTO':row[8],
             'DUE_AT':row[9],
             'ACCESO_ACRONYM':row[10],
-            'FECHA_ACCESO':row[11]}
+            'FECHA':row[11],
+            'FECHA_PROCESAMIENTO': row[12]
+            }
             resultado.append(content)
         return jsonify(resultado)
 
