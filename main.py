@@ -770,32 +770,32 @@ def bin():
             print(e)
 
 #ws_alumnoshistoricos
-@app.route('/alumnoshistoricos/<fecha_inicio>/<fecha_fin>')
-def alumnoshistoricos(fecha_inicio,fecha_fin):
+@app.route('/alumnoshistoricos/<plan>/<fecha_inicio>/<fecha_fin>')
+def alumnoshistoricos(plan,fecha_inicio,fecha_fin):
     try:
         cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-        cursor.execute(" select person_id PERSON_ID ,name NAME_CLIENTE ,acronym ACRONYM ,plan PLAN_NAME ,date_format(purchase_date,'%Y-%m-%d') PURCHASE_DATE ,documento DOCUMENTO ,cached_status CACHED_STATUS ,date_format(cancel_date,'%Y-%m-%d') CANCEL_DATE ,cancelling_reason CANCELLING_REASON ,country COUNTRY ,kind KIND ,replace(promotion_title,'|',' ') PROMOTION_TITLE ,email EMAIL ,date_format(birthday,'%Y-%m-%d') BIRTHDAY ,gender GENDER ,state STATE ,city CITY ,age AGE ,contrato CONTRATO from prod_lake_modeled_refined.alunos_historico where lower(country)='peru' and date_format (purchase_date,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' ")
+        cursor.execute(" select person_id CODIGO_MATRICULA ,name NOMBRE_CLIENTE ,acronym CODIGO_UNIDAD ,plan PLAN_ACTUAL ,date_format(purchase_date,'%Y-%m-%d') FECHA_COMPRA ,documento NRO_DOCUMENTO ,cached_status ESTADO_CLIENTE ,date_format(cancel_date,'%Y-%m-%d') FECHA_CANCELACION ,cancelling_reason MOTIVO_CANCELACION ,country PAIS ,kind KIND ,replace(promotion_title,'|',' ') PROMOCION_HIS ,email EMAIL_CLIENTE ,date_format(birthday,'%Y-%m-%d') FECHA_NACIMIENTO_CLIENTE ,gender SEXO ,state DEPARTAMENTO ,city PROVINCIA ,age EDAD ,contrato CONTRATO from prod_lake_modeled_refined.alunos_historico where lower(country)='peru' and plan =  = '"+str(plan)+"' and date_format (purchase_date,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' ")
         resultado = []
         for row in cursor:
             content = {
-            'PERSON_ID':row[0],
-            'NAME_CLIENTE':row[1],
-            'ACRONYM':row[2],
-            'PLAN_NAME':row[3],
-            'PURCHASE_DATE':row[4],
-            'DOCUMENTO':row[5],
-            'CACHED_STATUS':row[6],
-            'CANCEL_DATE':row[7],
-            'CANCELLING_REASON':row[8],
-            'COUNTRY':row[9],
+            'CODIGO_MATRICULA':row[0],
+            'NOMBRE_CLIENTE':row[1],
+            'CODIGO_UNIDAD':row[2],
+            'PLAN_ACTUAL':row[3],
+            'FECHA_COMPRA':row[4],
+            'NRO_DOCUMENTO':row[5],
+            'ESTADO_CLIENTE':row[6],
+            'FECHA_CANCELACION':row[7],
+            'MOTIVO_CANCELACION':row[8],
+            'PAIS':row[9],
             'KIND':row[10],
-            'PROMOTION_TITLE':row[11],
-            'EMAIL':row[12],
-            'BIRTHDAY':row[13],
-            'GENDER':row[14],
-            'STATE':row[15],
-            'CITY':row[16],
-            'AGE':row[17],
+            'PROMOCION_HIS':row[11],
+            'EMAIL_CLIENTE':row[12],
+            'FECHA_NACIMIENTO_CLIENTE':row[13],
+            'SEXO':row[14],
+            'DEPARTAMENTO':row[15],
+            'PROVINCIA':row[16],
+            'EDAD':row[17],
             'CONTRATO':row[18],
             }
             resultado.append(content)
