@@ -722,28 +722,30 @@ def inadimplentes_analitico(fecha_inicio,fecha_fin):
 def cancelamientos(fecha_inicio,fecha_fin):
     try:
         cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-        cursor.execute(" select acronym UNIDADE_GIMNASIO ,propriedade PROPRIEDADE_PROPRIEDAD ,matricula MATRICULA ,nome NOME_NOMBRE ,document_cpf DOCUMENT_CPF ,date_format(birthday,'%Y-%m-%d') DATA_FECHA_NASCIMENTO ,age IDADE ,email EMAIL_CORREO ,tipo_cancelamento TIPO_CANCELAMENTO_CANCELACION ,motivo_cancelamento MOTIVO_RAZON ,replace(promocao,'|',' ') PROMOCAO_PROMOCION ,pais PAIS ,date_format(data_pedido_cancelamento,'%Y-%m-%d')  DATA_PEDIDO_CANCELAMENTO ,date_format(data_cancelamento,'%Y-%m-%d') DATA_CANCELAMENTO_FECHA ,plano_plan PLANO_PLAN ,date_format(data_compra_plano,'%Y-%m-%d') DATA_COMPRA_PLAN ,telefono TELEFONO ,date_format(load_datetime,'%Y-%m-%d') LOAD_DATETIME from prod_lake_modeled_refined.cancelados where lower(pais) = 'peru' and date_format(data_cancelamento,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' ")
+        cursor.execute(" select acronym CODIGO_UNIDAD ,propriedade PROPIEDAD ,matricula COD_MATRICULA ,nome NOMBRES ,document_cpf NRO_DNI ,date_format(birthday,'%Y-%m-%d') FECHA_NACIMIENTO ,age EDAD ,email EMAIL ,case 	when telefono is not null then 'CellPhone' 	else null end TIPO_TELEFONO ,telefono NRO_CELULAR ,tipo_cancelamento TIPO_CANCELAMIENTO ,motivo_cancelamento MOTIVO_CANCELAMIENTO ,replace(promocao,'|',' ') PROMOCION ,pais PAIS ,date_format(data_pedido_cancelamento,'%Y-%m-%d')  FECHA_SOLICITUD_CANCELAMIENTO ,date_format(data_cancelamento,'%Y-%m-%d') FECHA_CANCELAMIENTO ,plano_plan PLAN_CLIENTE ,date_format(data_compra_plano,'%Y-%m-%d') FECHA_COMPRA_PLAN ,date_format(load_datetime,'%Y-%m-%d') FECHA_PROCESAMIENTO from prod_lake_modeled_refined.cancelados where lower(pais) = 'peru' and date_format(data_cancelamento,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"'  ")
         resultado = []
         for row in cursor:
             content = {
-            'UNIDADE_GIMNASIO':row[0],
-            'PROPRIEDADE_PROPRIEDAD':row[1],
-            'MATRICULA':row[2],
-            'NOME_NOMBRE':row[3],
-            'DOCUMENT_CPF':row[4],
-            'DATA_FECHA_NASCIMENTO':row[5],
-            'IDADE':row[6],
-            'EMAIL_CORREO':row[7],
-            'TIPO_CANCELAMENTO_CANCELACION':row[8],
-            'MOTIVO_RAZON':row[9],
-            'PROMOCAO_PROMOCION':row[10],
-            'PAIS':row[11],
-            'DATA_PEDIDO_CANCELAMENTO':row[12],
-            'DATA_CANCELAMENTO_FECHA':row[13],
-            'PLANO_PLAN':row[14],
-            'DATA_COMPRA_PLAN':row[15],
-            'TELEFONO':row[16],
-            'LOAD_DATETIME':row[17]}
+            'CODIGO_UNIDAD':row[0],
+            'PROPIEDAD':row[1],
+            'COD_MATRICULA':row[2],
+            'NOMBRES':row[3],
+            'NRO_DNI':row[4],
+            'FECHA_NACIMIENTO':row[5],
+            'EDAD':row[6],
+            'EMAIL':row[7],
+            'TIPO_TELEFONO':row[8],
+            'NRO_CELULAR':row[9],
+            'TIPO_CANCELAMIENTO':row[10],
+            'MOTIVO_CANCELAMIENTO':row[11],
+            'PROMOCION':row[12],
+            'PAIS':row[13],
+            'FECHA_SOLICITUD_CANCELAMIENTO':row[14],
+            'FECHA_CANCELAMIENTO':row[15],
+            'PLAN_CLIENTE':row[16],
+            'FECHA_COMPRA_PLAN':row[17],
+            'FECHA_PROCESAMIENTO': row[18]
+            }
             resultado.append(content)
         return jsonify(resultado)
 
