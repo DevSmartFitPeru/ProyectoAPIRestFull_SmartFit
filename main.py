@@ -544,7 +544,7 @@ def invoice_latam():
 
 #ws_unidades
 @app.route('/unidades/<geografico>')
-def relatorio(geografico):
+def unidades(geografico):
         try:
             cars = []
             cursor = conn.cursor()
