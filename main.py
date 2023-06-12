@@ -579,37 +579,40 @@ def unidades():
             cursor.close()
 
 #ws_relatorio
-@app.route('/relatorio/<fecha_inicio>/<fecha_fin>/<geografico>')
-def relatorio(fecha_inicio,fecha_fin,geografico):
+@app.route('/relatorio/<fecha_inicio>/<fecha_fin>')
+def relatorio(fecha_inicio,fecha_fin):
         try:
             cars = []
             cursor = conn.cursor()
-            cursor.execute("  ")
+            cursor.execute(" SELECT ID_RELATORIO ,REFERENCIA ,MES ,TRY_CONVERT(DATE,FECHA,103)FECHA ,DIA ,UNIDAD ,VALOR_PAGO ,STATUS ,TIPO_TARJETA ,TIPO_COBRANZA ,TENTATIVA_DE_COBRANZA ,TENTATIVA_DE_COBRANZA_TOTAL ,CODIGO_IMPORTACION ,CODIGO_PAGAMENTO ,CONVERT(DATE,FECHA_VENCIMIENTO_RELATORIO,103)FECHA_VENCIMIENTO_RELATORIO ,TIPO_COBRANZA_2 ,CODIGO_RESPUESTA ,DESCRIPCION_RESPUESTA ,COD_ALUMNO ,CONVERT(DATE,FECHA_IMPORTACION,103)FECHA_IMPORTACION ,ID_FIN ,CODIGO_CONTRATO ,NUMERO_DE_REFERENCIA_RELATORIO ,PRODUCTO_RELATORIO ,CONVERT(DATE,FECHA_DE_CREACION,103)FECHA_DE_CREACION FROM VOXIVA.DWH.MAESTRO_RELATORIO_FIN  WHERE TRY_CONVERT(DATE,FECHA,103) BETWEEN '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' ")
             for row in cursor.fetchall():
                 content = {
-                        'REFERENCIA': row[0],
-                        'MES': row[1],
-                        'FECHA': row[2],
-                        'DIA': row[3],
-                        'UNIDAD': row[4],
-                        'VALOR_PAGO': row[5],
-                        'STATUS': row[6],
-                        'TIPO_TARJETA': row[7],
-                        'TIPO_COBRANZA': row[8],
-                        'TENTATIVA_DE_COBRANZA': row[9],
-                        'TENTATIVA_DE_COBRANZA_TOTAL': row[10],
-                        'CODIGO_IMPORTACION': row[11],
-                        'CODIGO_PAGAMENTO': row[12],
-                        'FECHA_VENCIMIENTO_RELATORIO': row[13],
-                        'TIPO_COBRANZA_2': row[14],
-                        'CODIGO_RESPUESTA': row[15],
-                        'DESCRIPCION_RESPUESTA': row[16],
-                        'COD_ALUMNO': row[17],
-                        'FECHA_IMPORTACION': row[18],
-                        'ID_FIN': row[19],
-                        'CODIGO_CONTRATO': row[20],
-                        'NUMERO_DE_REFERENCIA_RELATORIO': row[21],
-                        'PRODUCTO_RELATORIO': row[22]}
+                        'ID_RELATORIO': row[0],
+                        'REFERENCIA': row[1],
+                        'MES': row[2],
+                        'FECHA': row[3],
+                        'DIA': row[4],
+                        'UNIDAD': row[5],
+                        'VALOR_PAGO': row[6],
+                        'STATUS': row[7],
+                        'TIPO_TARJETA': row[8],
+                        'TIPO_COBRANZA': row[9],
+                        'TENTATIVA_DE_COBRANZA': row[10],
+                        'TENTATIVA_DE_COBRANZA_TOTAL': row[11],
+                        'CODIGO_IMPORTACION': row[12],
+                        'CODIGO_PAGAMENTO': row[13],
+                        'FECHA_VENCIMIENTO_RELATORIO': row[14],
+                        'TIPO_COBRANZA_2': row[15],
+                        'CODIGO_RESPUESTA': row[16],
+                        'DESCRIPCION_RESPUESTA': row[17],
+                        'COD_ALUMNO': row[18],
+                        'FECHA_IMPORTACION': row[19],
+                        'ID_FIN': row[20],
+                        'CODIGO_CONTRATO': row[21],
+                        'NUMERO_DE_REFERENCIA_RELATORIO': row[22],
+                        'PRODUCTO_RELATORIO': row[23],
+                        'FECHA_DE_CREACION': row[24]
+                }
                 cars.append(content)
                 return jsonify(cars)
         except Exception as e:
