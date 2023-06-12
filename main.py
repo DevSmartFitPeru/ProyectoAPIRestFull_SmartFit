@@ -576,16 +576,16 @@ def relatorio(geografico):
                         'UNIFIED_LOCATION_ID': row[22],
                         'ERP_BUSINESS_UNIT': row[23],
                         'ERP_SUBSIDIARY': row[24],
-                        'BRAND': row[24],
-                        'ESTADO_UNIDAD': row[24],
-                        'TIPO': row[24],
-                        'INVENTORY_ORGANIZATION': row[24],
-                        'LOCATION': row[24],
-                        'ID_UNIDAD_SMARTSYSTEM': row[24],
-                        'FLAG_TUNQUI': row[24],
-                        'REGION_UNIDAD': row[24],
-                        'LIDER_REGIONAL_UNIDAD': row[24],
-                        'NRO_DOCUMENTO_REGIONAL': row[24]
+                        'BRAND': row[25],
+                        'ESTADO_UNIDAD': row[26],
+                        'TIPO': row[27],
+                        'INVENTORY_ORGANIZATION': row[28],
+                        'LOCATION': row[29],
+                        'ID_UNIDAD_SMARTSYSTEM': row[30],
+                        'FLAG_TUNQUI': row[31],
+                        'REGION_UNIDAD': row[32],
+                        'LIDER_REGIONAL_UNIDAD': row[33],
+                        'NRO_DOCUMENTO_REGIONAL': row[34]
                 }
                 cars.append(content)
                 return jsonify(cars)
