@@ -774,12 +774,12 @@ def cancelamientos(fecha_inicio,fecha_fin):
              cursor.close()
 
 #ws_bin
-@app.route('/bin')
-def bin():
+@app.route('/wsbin/<bin>')
+def wsbin(bin):
         try:
             cars = []
             cursor = conn.cursor()
-            cursor.execute("SELECT TIPO,BIN,CATEGORY,BRAND,ALPHA,CONTRY_NAME FROM VOXIVA.DWH.BIN")
+            cursor.execute("SELECT TIPO,BIN,CATEGORY,BRAND,ALPHA,CONTRY_NAME FROM VOXIVA.DWH.BIN where BIN = '"+str(bin)+"'  ")
             for row in cursor.fetchall():
                 content = {
                         'TIPO': row[0],
