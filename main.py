@@ -591,8 +591,8 @@ def unidades(geografico):
                 return jsonify(cars)
         except Exception as e:
             print(e)
-        finally:
-            cursor.close()
+        #finally:
+         #   cursor.close()
 
 #ws_relatorio
 @app.route('/relatorio/<fecha_inicio>/<fecha_fin>/<geografico>')
