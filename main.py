@@ -542,7 +542,6 @@ def invoice_latam():
 
 #AQUI INICIA LOS API REST PARA VOXIVA
 
-#ws_unidades
 @app.route('/unidades/<geografico>')
 def unidades(geografico):
         try:
@@ -552,47 +551,44 @@ def unidades(geografico):
             for row in cursor.fetchall():
                 content = {
                         'ID_UNIDAD': row[0],
-                        'CODIGO': row[1],
-                        'UNIDAD': row[2],
-                        'RUC': row[3],
-                        'COMPANIA': row[4],
-                        'SERIE_BOLETAS': row[5],
-                        'SERIE_FACTURAS': row[6],
-                        'COMERCIO_VISA_INGENICO': row[7],
-                        'COMERCIO_MC_INGENICO': row[8],
-                        'ESTADO': row[9],
-                        'CODIGO_TCI': row[10],
-                        'CODIGO_ESTABLECIMIENTO_SUNAT': row[11],
-                        'DIRECCION': row[12],
-                        'DISTRITO': row[13],
-                        'PROVINCIA': row[14],
-                        'DEPARTAMENTO': row[15],
-                        'UBIGEO_UNIDAD': row[16],
-                        'AFORO': row[17],
-                        'FECHA_INAUGURACION': row[18],
-                        'LATITUD': row[19],
-                        'LONGITUD': row[20],
-                        'FECHA_DE_CREACION': row[21],
-                        'UNIFIED_LOCATION_ID': row[22],
-                        'ERP_BUSINESS_UNIT': row[23],
-                        'ERP_SUBSIDIARY': row[24],
-                        'BRAND': row[25],
-                        'ESTADO_UNIDAD': row[26],
-                        'TIPO': row[27],
-                        'INVENTORY_ORGANIZATION': row[28],
-                        'LOCATION': row[29],
-                        'ID_UNIDAD_SMARTSYSTEM': row[30],
-                        'FLAG_TUNQUI': row[31],
-                        'REGION_UNIDAD': row[32],
-                        'LIDER_REGIONAL_UNIDAD': row[33],
-                        'NRO_DOCUMENTO_REGIONAL': row[34]
-                }
+                            'CODIGO': row[1],
+                            'UNIDAD': row[2],
+                            'RUC': row[3],
+                            'COMPANIA': row[4],
+                            'SERIE_BOLETAS': row[5],
+                            'SERIE_FACTURAS': row[6],
+                            'COMERCIO_VISA_INGENICO': row[7],
+                            'COMERCIO_MC_INGENICO': row[8],
+                            'ESTADO': row[9],
+                            'CODIGO_TCI': row[10],
+                            'CODIGO_ESTABLECIMIENTO_SUNAT': row[11],
+                            'DIRECCION': row[12],
+                            'DISTRITO': row[13],
+                            'PROVINCIA': row[14],
+                            'DEPARTAMENTO': row[15],
+                            'UBIGEO_UNIDAD': row[16],
+                            'AFORO': row[17],
+                            'FECHA_INAUGURACION': row[18],
+                            'LATITUD': row[19],
+                            'LONGITUD': row[20],
+                            'FECHA_DE_CREACION': row[21],
+                            'UNIFIED_LOCATION_ID': row[22],
+                            'ERP_BUSINESS_UNIT': row[23],
+                            'ERP_SUBSIDIARY': row[24],
+                            'BRAND': row[25],
+                            'ESTADO_UNIDAD': row[26],
+                            'TIPO': row[27],
+                            'INVENTORY_ORGANIZATION': row[28],
+                            'LOCATION': row[29],
+                            'ID_UNIDAD_SMARTSYSTEM': row[30],
+                            'FLAG_TUNQUI': row[31],
+                            'REGION_UNIDAD': row[32],
+                            'LIDER_REGIONAL_UNIDAD': row[33],
+                            'NRO_DOCUMENTO_REGIONAL': row[34]}
                 cars.append(content)
-                return jsonify(cars)
+            return jsonify(cars)
         except Exception as e:
             print(e)
-        #finally:
-         #   cursor.close()
 
 #ws_relatorio
 @app.route('/relatorio/<fecha_inicio>/<fecha_fin>/<geografico>')
