@@ -604,37 +604,35 @@ def relatorio(fecha_inicio,fecha_fin,geografico):
             for row in cursor.fetchall():
                 content = {
                         'ID_RELATORIO': row[0],
-                        'REFERENCIA': row[1],
-                        'MES': row[2],
-                        'FECHA': row[3],
-                        'DIA': row[4],
-                        'UNIDAD': row[5],
-                        'VALOR_PAGO': row[6],
-                        'STATUS': row[7],
-                        'TIPO_TARJETA': row[8],
-                        'TIPO_COBRANZA': row[9],
-                        'TENTATIVA_DE_COBRANZA': row[10],
-                        'TENTATIVA_DE_COBRANZA_TOTAL': row[11],
-                        'CODIGO_IMPORTACION': row[12],
-                        'CODIGO_PAGAMENTO': row[13],
-                        'FECHA_VENCIMIENTO_RELATORIO': row[14],
-                        'TIPO_COBRANZA_2': row[15],
-                        'CODIGO_RESPUESTA': row[16],
-                        'DESCRIPCION_RESPUESTA': row[17],
-                        'COD_ALUMNO': row[18],
-                        'FECHA_IMPORTACION': row[19],
-                        'ID_FIN': row[20],
-                        'CODIGO_CONTRATO': row[21],
-                        'NUMERO_DE_REFERENCIA_RELATORIO': row[22],
-                        'PRODUCTO_RELATORIO': row[23],
-                        'FECHA_DE_CREACION': row[24]
-                }
+                            'REFERENCIA': row[1],
+                            'MES': row[2],
+                            'FECHA': row[3],
+                            'DIA': row[4],
+                            'UNIDAD': row[5],
+                            'VALOR_PAGO': row[6],
+                            'STATUS': row[7],
+                            'TIPO_TARJETA': row[8],
+                            'TIPO_COBRANZA': row[9],
+                            'TENTATIVA_DE_COBRANZA': row[10],
+                            'TENTATIVA_DE_COBRANZA_TOTAL': row[11],
+                            'CODIGO_IMPORTACION': row[12],
+                            'CODIGO_PAGAMENTO': row[13],
+                            'FECHA_VENCIMIENTO_RELATORIO': row[14],
+                            'TIPO_COBRANZA_2': row[15],
+                            'CODIGO_RESPUESTA': row[16],
+                            'DESCRIPCION_RESPUESTA': row[17],
+                            'COD_ALUMNO': row[18],
+                            'FECHA_IMPORTACION': row[19],
+                            'ID_FIN': row[20],
+                            'CODIGO_CONTRATO': row[21],
+                            'NUMERO_DE_REFERENCIA_RELATORIO': row[22],
+                            'PRODUCTO_RELATORIO': row[23],
+                            'FECHA_DE_CREACION': row[24]}
                 cars.append(content)
-                return jsonify(cars)
+            return jsonify(cars)
         except Exception as e:
             print(e)
-        finally:
-            cursor.close()
+
 #ws_promociones
 @app.route('/promociones')
 def promociones():
