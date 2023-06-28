@@ -917,6 +917,75 @@ def accesos(plan,fecha_inicio,fecha_fin):
              cursor.close()
 
 #AQUI TERMINA API REST DE VOXIVA
+#API SERVICIOS
+#Api topdesk_odata_backlog
+@app.route('/odatabacklog/<fecha_inicio>/<fecha_fin>')
+def odatabacklog(fecha_inicio,fecha_fin):
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+        cursor.execute(" select ano_mes ,ano_mes_criacao ,pais ,reference_date ,id_atualizacao ,date_format(data_atualizacao, '%Y-%m-%d')data_atualizacao ,incidentid ,date_format(responder_antes_de, '%Y-%m-%d')responder_antes_de ,date_format(data_alvo_sla, '%Y-%m-%d')data_alvo_sla ,date_format(respondido_em, '%Y-%m-%d')respondido_em ,date_format(resolvido_em, '%Y-%m-%d')resolvido_em ,date_format(fechado_em, '%Y-%m-%d')fechado_em ,custos ,avaliacao_atendimento ,escalonado ,desescalonado ,respondido ,fechado ,finalizado ,numero_chamado ,date_format(data_criacao_chamado, '%Y-%m-%d')data_criacao_chamado ,titulo_chamado ,nome_solicitante ,numero_externo ,categoria ,subcategoria ,prioridade ,servico ,duracao_sla ,tipo_chamado ,registro ,impacto ,urgencia ,gerencia ,departamento_grupo_operador ,grupo_operadores ,operador ,fornecedores ,status ,motivo_escalamento ,unidade ,regional_senior ,login_de_rede ,cargo ,departamento ,date_format(load_datetime, '%Y-%m-%d')load_datetime ,date_format(last_requisition_date, '%Y-%m-%d')last_requisition_date ,ultimo_status ,ultimo_grupo_operador ,ultima_gerencia ,date_format(ultima_data_atualizacao, '%Y-%m-%d')ultima_data_atualizacao ,status_encerrado_ou_resolvido ,contagem_unidade from prod_lake_modeled_refined.topdesk_odata_backlog where lower(pais) ='peru' and data_criacao_chamado between cast('"+str(fecha_inicio)+"' as date) and  cast('"+str(fecha_fin)+"' as date) ")
+        resultado = []
+        for row in cursor:
+            content = { 'ano_mes':row[0],
+            'ano_mes_criacao':row[1],
+            'pais':row[2],
+            'reference_date':row[3],
+            'id_atualizacao':row[4],
+            'data_atualizacao':row[5],
+            'incidentid':row[6],
+            'responder_antes_de':row[7],
+            'data_alvo_sla':row[8],
+            'respondido_em':row[9],
+            'resolvido_em':row[10],
+            'fechado_em':row[11],
+            'custos':row[12],
+            'avaliacao_atendimento':row[13],
+            'escalonado':row[14],
+            'desescalonado':row[15],
+            'respondido':row[16],
+            'fechado':row[17],
+            'finalizado':row[18],
+            'numero_chamado':row[19],
+            'data_criacao_chamado':row[20],
+            'titulo_chamado':row[21],
+            'nome_solicitante':row[22],
+            'numero_externo':row[23],
+            'categoria':row[24],
+            'subcategoria':row[25],
+            'prioridade':row[26],
+            'servico':row[27],
+            'duracao_sla':row[28],
+            'tipo_chamado':row[29],
+            'registro':row[30],
+            'impacto':row[31],
+            'urgencia':row[32],
+            'gerencia':row[33],
+            'departamento_grupo_operador':row[34],
+            'grupo_operadores':row[35],
+            'operador':row[36],
+            'fornecedores':row[37],
+            'status':row[38],
+            'motivo_escalamento':row[39],
+            'unidade':row[40],
+            'regional_senior':row[41],
+            'login_de_rede':row[42],
+            'cargo':row[43],
+            'departamento':row[44],
+            'load_datetime':row[45],
+            'last_requisition_date':row[46],
+            'ultimo_status':row[47],
+            'ultimo_grupo_operador':row[48],
+            'ultima_gerencia':row[49],
+            'ultima_data_atualizacao':row[50],
+            'status_encerrado_ou_resolvido':row[51],
+            'contagem_unidade':row[52]}
+            resultado.append(content)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
 
 @app.route('/salescoporate/<fecha_inicio>/<fecha_fin>')
 def salescoporate(fecha_inicio,fecha_fin):
