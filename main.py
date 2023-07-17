@@ -987,6 +987,31 @@ def odatabacklog(fecha_inicio,fecha_fin):
     finally:
         cursor.close()
 
+#API KPIS
+@app.route('/kpis/<fecha_inicio>/<fecha_fin>')
+def kpis(fecha_inicio,fecha_fin):
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+        cursor.execute(" select date_format(load_datetime ,'%Y-%m-%d')LOAD_DATE ,date_format(reference_date ,'%Y-%m-%d')REFERENCE_DATE ,acronym ACRONYM ,kpi KPI ,plan_name PLAN_NAME ,channel CHANNEL ,origin ORIGIN ,qtd QTD from prod_lake_modeled_refined.kpis_diarios where acronym in (select acronym from prod_lake_modeled_refined.dim_locations where country = 'Peru' ) and kpi in ('Acessos', 'Ativos', 'Inadimplentes', 'Visitas', 'Venda Mês','Evasão') and date_format (reference_date,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' ")
+        resultado = []
+        for row in cursor:
+            content = {
+            'LOAD_DATE':row[0],
+            'REFERENCE_DATE':row[1],
+            'ACRONYM':row[2],
+            'KPI':row[3],
+            'PLAN_NAME':row[4],
+            'CHANNEL':row[5],
+            'ORIGIN':row[6],
+            'QTD':row[7]
+            }
+            resultado.append(content)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+    finally:
+             cursor.close()
 @app.route('/salescoporate/<fecha_inicio>/<fecha_fin>')
 def salescoporate(fecha_inicio,fecha_fin):
     try:
