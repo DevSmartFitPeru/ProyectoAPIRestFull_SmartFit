@@ -1012,29 +1012,7 @@ def kpis(fecha_inicio,fecha_fin):
         print(e)
     finally:
              cursor.close()
-@app.route('/kpisr/<fecha_inicio>/<fecha_fin>')
-def kpisr(fecha_inicio,fecha_fin):
-    try:
-        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-        cursor.execute(" select date_format(reference_date ,'%Y-%m-%d')reference_date ,reference_year ,reference_month ,acronym ,kpi ,plan_name ,qtd from ( select reference_date ,reference_year ,reference_month ,acronym ,kpi ,plan_name 	,qtd from (select row_number () over (partition by concat(acronym, cast(reference_month as varchar(10)),cast(reference_year as varchar(10)) ) order by reference_date desc) r_number ,reference_date ,reference_year ,reference_month ,acronym 	,kpi ,plan_name ,qtd from prod_lake_modeled_refined.kpis_diarios where kpi in ('Ativos') and acronym in (select acronym	from prod_lake_modeled_refined.dim_locations where country = 'Peru')date_format (reference_date,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' and plan_name in ('Black', 'Smart') and lower(channel) in('todos os canais'))ac where r_number <= 2 union all 	select 	reference_date 	,reference_year ,reference_month ,acronym ,kpi, plan_name, qtd from(select row_number () over (partition by concat(acronym, cast(reference_month as varchar(10)), cast(reference_year as varchar(10)) )order by reference_date desc) r_number, reference_date, reference_year, reference_month, acronym, kpi, plan_name, qtd from(select reference_date, reference_month ,reference_year ,acronym, kpi, plan_name ,sum(qtd)qtd from	prod_lake_modeled_refined.kpis_diarios where kpi in ('Inadimplentes') and acronym in (select acronym from prod_lake_modeled_refined.dim_locations where country = 'Peru')date_format (reference_date,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' and plan_name in ('Black', 'Smart') group by reference_date ,reference_month ,reference_year ,acronym ,kpi ,plan_name )rn )ina where 	r_number <= 2 union all	select 		max(reference_date) reference_date 		,reference_year 		,reference_month 		,acronym 		,kpi 		,plan_name 		,sum(qtd)qtd 	from 		prod_lake_modeled_refined.kpis_diarios 	where 		kpi in ('Acessos','Evasão') and acronym in (select 	acronym from prod_lake_modeled_refined.dim_locations where	country = 'Peru')date_format (reference_date,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' and plan_name in ('Black', 'Smart') and lower(channel) in('todos os canais') 	group by reference_year, reference_month, acronym, kpi, plan_name union all select 	max(reference_date) reference_date ,reference_year, reference_month, acronym, kpi, plan_name, sum(qtd)qtd from 	prod_lake_modeled_refined.kpis_diarios 	where kpi in ('Visitas') and acronym in (select acronym	from prod_lake_modeled_refined.dim_locations where 	country = 'Peru') date_format (reference_date,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' 		and origin = 'Smart System' 	group by 		reference_year 		,reference_month 		,acronym 		,kpi 		,plan_name 		union all select 		max(reference_date) reference_date 		,reference_year 		,reference_month 		,acronym 		,kpi 		,plan_name 		,sum(qtd)qtd 	from 		prod_lake_modeled_refined.kpis_diarios 	where 		kpi in ('Venda Mês') 		and acronym in (select 							acronym 						from prod_lake_modeled_refined.dim_locations 							where 							country = 'Peru' 						) 		date_format (reference_date,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' 		and plan_name in ('Black', 'Smart') 	group by 		reference_year 		,reference_month 		,acronym 		,kpi 		,plan_name )kpi ")
-        resultado = []
-        for row in cursor:
-            content = {
-            'reference_date':row[0],
-            'reference_year':row[1],
-            'reference_month':row[2],
-            'acronym':row[3],
-            'kpi':row[4],
-            'plan_name':row[5],
-            'qtd':row[6]
-            }
-            resultado.append(content)
-        return jsonify(resultado)
 
-    except Exception as e:
-        print(e)
-    finally:
-             cursor.close()
 @app.route('/salescoporate/<fecha_inicio>/<fecha_fin>')
 def salescoporate(fecha_inicio,fecha_fin):
     try:
