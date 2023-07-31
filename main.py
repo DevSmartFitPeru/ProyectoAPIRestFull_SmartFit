@@ -634,19 +634,22 @@ def relatorio(fecha_inicio,fecha_fin,geografico):
 def promociones():
     try:
         cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-        cursor.execute("select prom.id_unidade ID_UNIDAD,loca.acronym COD_UNIDAD,prom.plan_id PLAN_ID,prom.id_promocao ID_PROMOCION,dprom.code CODIGO_PROMOCION,prom.descricao_promocao DESC_PROMOCION,prom.inicio_promocao FECHA_INICIO,prom.fim_promocao FECHA_FIN,prom.load_datetime FECHA_CARGA from prod_lake_modeled_salesforce_latam.salesforce_dim_promotions_latam prom left join prod_lake_modeled_refined.dim_locations loca on prom.id_unidade  = cast(loca.id as varchar(20)) left join prod_lake_modeled_refined.dim_promotions dprom on prom.id_promocao = cast(dprom.id as varchar(20)) where loca.country = 'Peru'")
+        cursor.execute("select id indice ,code promocion_cod ,case 	when id = 11832 then 'Promo Cierre'	 	when id = 11983 then 'Promo Enero Black' 	when id = 12198 then 'Promo Febrero Black' 	when id = 12401 then 'Promo Febrero FLASH' 	when id = 12448 then 'Promo Marzo' 	when id = 12543 then 'Fit Friend' 	when id = 12688 then 'Descuento Black' 	when id = 13071 then 'Maraton Adidas' 	when id = 13127 then 'Promo Mayo FLASH' 	when id = 13450 then 'Cierre semestre' 	when id = 13565 then 'Te exoneramos tu deuda' 	when id = 13600 then 'PromoJulio' 	else 'validar' end nombre_promocion ,case 	when id = 11832 then 'Promo Cierre 2022'	 	when id = 11983 then 'Promo Enero Black 2023' 	when id = 12198 then 'Promo Febrero Black 2023' 	when id = 12401 then 'Promo Febrero FLASH 2023' 	when id = 12448 then 'Promo Marzo 2023' 	when id = 12543 then 'Fit Friend 2023' 	when id = 12688 then 'Descuento Black 2023' 	when id = 13071 then 'Maraton Adidas 2023' 	when id = 13127 then 'Promo Mayo FLASH 2023' 	when id = 13450 then 'Cierre semestre 2023' 	when id = 13565 then 'Te exoneramos tu deuda 2023' 	when id = 13600 then 'PromoJulio 2023' 	else 'validar' end nombre_promocion_short ,concat(date_format(starts_at, '%Y-%m-%d'),' ','al',' ',date_format(expires_at, '%Y-%m-%d')) vigencia ,date_format(starts_at, '%Y-%m-%d')fecha_inicio ,date_format(expires_at, '%Y-%m-%d')fecha_fin ,replace(title,'|','') descripcion ,'Todas'sedes ,'Unica'tipo ,''stock from prod_lake_modeled_refined.dim_promotions where id in (11832, 11983, 12198, 12401, 12448, 12543, 12688, 13071, 13127, 13450, 13600, 13565)")
         resultado = []
         for row in cursor:
             content = {
-            'ID_UNIDAD':row[0],
-            'COD_UNIDAD':row[1],
-            'PLAN_ID':row[2],
-            'ID_PROMOCION':row[3],
-            'CODIGO_PROMOCION':row[4],
-            'DESC_PROMOCION':row[5],
-            'FECHA_INICIO':row[6],
-            'FECHA_FIN':row[7],
-            'FECHA_CARGA':row[8]}
+            'indice':row[0],
+            'promocion_cod':row[1],
+            'nombre_promocion':row[2],
+            'nombre_promocion_short':row[3],
+            'vigencia':row[4],
+            'fecha_inicio':row[5],
+            'fecha_fin':row[6],
+            'descripcion':row[7],
+            'sedes':row[8],
+            'tipo':row[9],
+            'stock':row[10]
+            }
             resultado.append(content)
         return jsonify(resultado)
     except Exception as e:
