@@ -1016,6 +1016,41 @@ def kpis(fecha_inicio,fecha_fin):
     finally:
              cursor.close()
 
+#API KPIS_PROMOCIONES
+@app.route('/kpi_promociones/<fecha_inicio>/<fecha_fin>')
+def inadimplentes_analitico(fecha_inicio,fecha_fin):
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+        cursor.execute(" select prom.id id_promocion ,date_format(prom.starts_at,'%Y-%m-%d')  fecha_inicio_promo ,date_format(prom.expires_at,'%Y-%m-%d') vigencia_promo ,prom.active estado_promocion ,replace(prom.title, '|',' ')title ,pur.id id_compra ,date_format(pur.created_at,'%Y-%m-%d') fecha_de_compra ,date_format(pur.confirmed_at,'%Y-%m-%d')  fecha_de_confirm_compra ,date_format(pur.cancelled,'%Y-%m-%d')  fecha_cancel_compra ,date_format(pur.expired_at,'%Y-%m-%d') fecha_exp_compra ,pur.person_id cod_matricula ,cli.cliente_nome nombre_cliente ,cli.cliente_idade  edad_cliente ,peo.status_aluno ,peo.status_catraca ,plan.name nombre_plan ,loc.acronym cod_unidad_compra ,case 	when pur.created_at is not null and pur.expired_at is null then 'Activo' 	else 'Cancelado' end Status_compra from prod_lake_ss_refined.purchases pur left join prod_lake_modeled_refined.dim_promotions prom on pur.promotion_id  = prom.id left join prod_lake_modeled_refined.dim_plans plan on pur.plan_id = plan.id left join prod_lake_modeled_refined.dim_locations loc on pur.original_location_id = loc.id left join prod_lake_modeled_refined.dim_people peo on pur.person_id  = peo.person_id left join prod_lake_modeled_salesforce_latam.salesforce_dim_clientes_latam cli on cast(pur.person_id  as varchar(50)) = cli.cliente_person_id where pur.promotion_id  in (11832, 11983, 12198, 12401, 12448, 12543, 12688, 13071, 13127, 13450, 13600, 13565) and date_format(pur.created_at,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' ")
+        resultado = []
+        for row in cursor:
+            content = {
+                        'id_promocion': row[0],
+                        'fecha_inicio_promo': row[1],
+                        'vigencia_promo': row[2],
+                        'estado_promocion': row[3],
+                        'title': row[4],
+                        'id_compra': row[5],
+                        'fecha_de_compra': row[6],
+                        'fecha_de_confirm_compra': row[7],
+                        'fecha_cancel_compra': row[8],
+                        'fecha_exp_compra': row[9],
+                        'cod_matricula': row[10],
+                        'nombre_cliente': row[11],
+                        'edad_cliente': row[12],
+                        'status_aluno': row[13],
+                        'status_catraca': row[14],
+                        'nombre_plan': row[15],
+                        'cod_unidad_compra': row[16]
+                     }
+            resultado.append(content)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+    finally:
+             cursor.close()
+
 @app.route('/salescoporate/<fecha_inicio>/<fecha_fin>')
 def salescoporate(fecha_inicio,fecha_fin):
     try:
