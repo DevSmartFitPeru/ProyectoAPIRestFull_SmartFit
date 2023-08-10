@@ -1048,7 +1048,7 @@ def kpipromociones(fecha_inicio,fecha_fin):
                         'payed_at': row[20],
                         'amount_paid': row[21],
                         'payment_state': row[22],
-                        'load_datetime': row[22]
+                        'load_datetime': row[23]
                      }
             resultado.append(content)
         return jsonify(resultado)
