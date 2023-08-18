@@ -85,42 +85,6 @@ def location():
     finally:
         cursor.close()
 
-@app.route('/dimlocation')
-def dimlocation():
-    try:
-        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-        cursor.execute(" select  acronym ,active ,opening_confirmed ,address ,built_area ,cnpj ,created_at ,first_due_at ,id ,latitude ,longitude ,name ,official_name ,real_opening_date ,unified_location_id ,state ,city ,district ,regional from prod_lake_modeled_refined.dim_locations where country = 'Peru' ")
-        resultado = []
-        for row in cursor:
-            content = {
-                'select':row[0],
-                'acronym':row[1],
-                'active':row[2],
-                'opening_confirmed':row[3],
-                'address':row[4],
-                'built_area':row[5],
-                'cnpj':row[6],
-                'created_at':row[7],
-                'first_due_at':row[8],
-                'id':row[9],
-                'latitude':row[10],
-                'longitude':row[11],
-                'name':row[12],
-                'official_name':row[13],
-                'real_opening_date':row[14],
-                'unified_location_id':row[15],
-                'state':row[16],
-                'city':row[17],
-                'district':row[18]
-                'regional':row[19]
-                }
-            resultado.append(content)
-        return jsonify(resultado)
-
-    except Exception as e:
-        print(e)
-    finally:
-        cursor.close()
 
 @app.route('/minifactu/<fecha_inicio>/<fecha_fin>')
 def minifactu(fecha_inicio,fecha_fin):
