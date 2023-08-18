@@ -93,26 +93,25 @@ def dimlocation():
         resultado = []
         for row in cursor:
             content = {
-                'select':row[0],
-                'acronym':row[1],
-                'active':row[2],
-                'opening_confirmed':row[3],
-                'address':row[4],
-                'built_area':row[5],
-                'cnpj':row[6],
-                'created_at':row[7],
-                'first_due_at':row[8],
-                'id':row[9],
-                'latitude':row[10],
-                'longitude':row[11],
-                'name':row[12],
-                'official_name':row[13],
-                'real_opening_date':row[14],
-                'unified_location_id':row[15],
-                'state':row[16],
-                'city':row[17],
-                'district':row[18],
-                'regional':row[19]
+                'acronym':row[0],
+                'active':row[1],
+                'opening_confirmed':row[2],
+                'address':row[3],
+                'built_area':row[4],
+                'cnpj':row[5],
+                'created_at':row[6],
+                'first_due_at':row[7],
+                'id':row[8],
+                'latitude':row[9],
+                'longitude':row[10],
+                'name':row[11],
+                'official_name':row[12],
+                'real_opening_date':row[13],
+                'unified_location_id':row[14],
+                'state':row[15],
+                'city':row[16],
+                'district':row[17],
+                'regional':row[18]
                 }
             resultado.append(content)
         return jsonify(resultado)
@@ -121,6 +120,7 @@ def dimlocation():
         print(e)
     finally:
         cursor.close()
+
 @app.route('/minifactu/<fecha_inicio>/<fecha_fin>')
 def minifactu(fecha_inicio,fecha_fin):
     try:
