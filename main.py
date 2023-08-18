@@ -89,7 +89,7 @@ def location():
 def dimlocation():
     try:
         cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-        cursor.execute(" select  acronym ,active ,opening_confirmed ,address ,built_area ,cnpj ,date_format(created_at, '%Y-%m-%d %H:%i')created_at ,date_format(first_due_at, '%Y-%m-%d %H:%i')first_due_at ,id ,latitude ,longitude ,name ,official_name ,date_format(real_opening_date, '%Y-%m-%d %H:%i')real_opening_date ,unified_location_id ,state ,city ,district ,regional from prod_lake_modeled_refined.dim_locations where country = 'Peru' ")
+        cursor.execute(" select  acronym ,active ,opening_confirmed ,address ,built_area ,cnpj ,date_format(created_at, '%Y-%m-%d')created_at ,date_format(first_due_at, '%Y-%m-%d')first_due_at ,id ,latitude ,longitude ,name ,official_name ,date_format(real_opening_date, '%Y-%m-%d')real_opening_date ,unified_location_id ,state ,city ,district ,regional from prod_lake_modeled_refined.dim_locations where country = 'Peru' ")
         resultado = []
         for row in cursor:
             content = {
