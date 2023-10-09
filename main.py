@@ -583,7 +583,7 @@ def unidades(geografico):
         try:
             cars = []
             cursor = conn.cursor()
-            cursor.execute(" SELECT ID_UNIDAD ,CODIGO ,UNIDAD ,RUC ,COMPANIA ,SERIE_BOLETAS ,SERIE_FACTURAS ,COMERCIO_VISA_INGENICO ,COMERCIO_MC_INGENICO ,ESTADO ,CODIGO_TCI ,CODIGO_ESTABLECIMIENTO_SUNAT ,DIRECCION ,DISTRITO ,PROVINCIA ,DEPARTAMENTO ,UBIGEO_UNIDAD ,AFORO ,CONVERT(DATE,FECHA_INAUGURACION,103)FECHA_INAUGURACION ,LATITUD ,LONGITUD ,CONVERT(DATE,FECHA_DE_CREACION,103)FECHA_DE_CREACION ,UNIFIED_LOCATION_ID ,ERP_BUSINESS_UNIT ,ERP_SUBSIDIARY ,BRAND ,ESTADO_UNIDAD ,TIPO ,INVENTORY_ORGANIZATION ,LOCATION ,ID_UNIDAD_SMARTSYSTEM ,FLAG_TUNQUI ,REGION_UNIDAD ,LIDER_REGIONAL_UNIDAD ,NRO_DOCUMENTO_REGIONAL FROM PROCESOS_SMARTFIT.SMARTFIT.UNIDADES_SMARTFIT_PERU WHERE ESTADO_UNIDAD = 'ACTIVO' AND TIPO = 'Filial' AND CODIGO NOT IN ('LIMADM1','LIMADM2','LIMADM3','LIMADM5','SMFERP1','LIMCOR1','LIMCOR2','LIMCOR3','CALBEL2') AND DEPARTAMENTO = '"+str(geografico)+"' ")
+            cursor.execute("SELECT ID_UNIDAD ,CODIGO ,UNIDAD ,RUC ,COMPANIA ,SERIE_BOLETAS ,SERIE_FACTURAS ,COMERCIO_VISA_INGENICO ,COMERCIO_MC_INGENICO ,ESTADO ,CODIGO_TCI ,CODIGO_ESTABLECIMIENTO_SUNAT ,DIRECCION ,DISTRITO ,PROVINCIA ,DEPARTAMENTO ,UBIGEO_UNIDAD ,AFORO ,CONVERT(DATE,FECHA_INAUGURACION,103)FECHA_INAUGURACION ,LATITUD ,LONGITUD ,CONVERT(DATE,FECHA_DE_CREACION,103)FECHA_DE_CREACION ,UNIFIED_LOCATION_ID ,ERP_BUSINESS_UNIT ,ERP_SUBSIDIARY ,BRAND ,ESTADO_UNIDAD ,TIPO ,INVENTORY_ORGANIZATION ,LOCATION ,ID_UNIDAD_SMARTSYSTEM ,FLAG_TUNQUI ,REGION_UNIDAD ,LIDER_REGIONAL_UNIDAD ,NRO_DOCUMENTO_REGIONAL FROM PROCESOS_SMARTFIT.SMARTFIT.UNIDADES_SMARTFIT_PERU WHERE ESTADO_UNIDAD = 'ACTIVO' AND TIPO = 'Filial' AND CODIGO NOT IN ('LIMADM1','LIMADM2','LIMADM3','LIMADM5','SMFERP1','LIMCOR1','LIMCOR2','LIMCOR3','CALBEL2') AND DEPARTAMENTO = '"+str(geografico)+"' ")
             for row in cursor.fetchall():
                 content = {
                         'ID_UNIDAD': row[0],
@@ -1192,7 +1192,28 @@ def vta_corporativa(fecha_inicio,fecha_fin):
         print(e)
     finally:
              cursor.close()
+@app.route('/transaction_latam/<fecha_inicio>/<fecha_fin>')
+def transaction_latam(fecha_inicio,fecha_fin):
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+        cursor.execute("select country ,acronym ,id_payment,date_format (payed_at,'%Y-%m-%d') payed_at ,amount_paid ,minifactu_id,forma_pagamento  from prod_lake_modeled_refined.minifactu_otc where date_format(payed_at,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' and country in ('Peru','México','Colômbia','Chile')")
+        resultado = []
+        for row in cursor:
+            content = {
+            'country':row[0],
+            'acronym':row[1],
+            'id_payment':row[2],
+            'payed_at':row[3],
+            'amount_paid':row[4],
+            'minifactu_id':row[5],
+            'forma_pagamento':row[6]}
+            resultado.append(content)
+        return jsonify(resultado)
 
+    except Exception as e:
+        print(e)
+    finally:
+             cursor.close()
 
 server_name = app.config['SERVER_NAME']
 if server_name and ':' in server_name:
