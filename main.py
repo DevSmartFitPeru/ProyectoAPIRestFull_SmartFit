@@ -1218,7 +1218,7 @@ def transaction_latam(fecha_inicio,fecha_fin):
 def dashboard_latam(fecha_inicio,fecha_fin):
     try:
         cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-        cursor.execute("select date_format(payed_at,'%Y-%m-%d') payed_at ,country,count(*) as Total_tx,sum(amount_paid) as valorizado from prod_lake_modeled_refined.minifactu_otc where date_format(payed_at,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' and country in ('Peru','México','Colômbia','Chile','Brasil') group by payed_at ,country ")
+        cursor.execute("select date_format(payed_at,'%Y-%m-%d') payed_at ,country,count(*) as Total_tx,sum(amount_paid) as valorizado from prod_lake_modeled_refined.minifactu_otc where date_format(payed_at,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' group by payed_at ,country ")
         resultado = []
         for row in cursor:
             content = {
