@@ -1233,7 +1233,6 @@ def dashboard_latam(fecha_inicio,fecha_fin):
         print(e)
     finally:
              cursor.close()
-
 server_name = app.config['SERVER_NAME']
 if server_name and ':' in server_name:
     host, port = server_name.split(":")
