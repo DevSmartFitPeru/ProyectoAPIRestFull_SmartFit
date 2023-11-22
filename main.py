@@ -1233,6 +1233,34 @@ def dashboard_latam(fecha_inicio,fecha_fin):
         print(e)
     finally:
              cursor.close()
+@app.route('/pagos_procesados/<fecha_inicio>/<fecha_fin>')
+def pagos_procesados(fecha_inicio,fecha_fin):
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+        cursor.execute("WITH payments_services AS (SELECT date_format(p.payed_at, '%Y-%m-%d') payed_at, p.payable_type, p.payable_id, p.plan_id, p.location_id, pm.kind AS payment_method_kind, p.state AS payment_state, st.name AS status_name, pc.name AS payment_company_name, p.id AS payment_id, w.person_id AS person_id, p.amount_paid AS amount_paid, p.load_datetime, p.authorization_number , p.contract_number , p.nsu FROM prod_lake_ss_refined.payments p JOIN prod_lake_ss_refined.wallets w ON w.id = p.wallet_id JOIN prod_lake_ss_refined.payment_companies pc ON pc.id = w.payment_company_id JOIN prod_lake_ss_refined.payment_methods pm ON pm.id = pc.payment_method_id LEFT JOIN prod_lake_ss_refined.payment_statuses st ON st.id = p.payment_status_id WHERE p.state = 'payed' AND p.amount_paid > 0 AND p.payable_type = 'Service' AND year(p.payed_at) = year(CURRENT_DATE) AND p.location_id in (SELECT l.id FROM prod_lake_modeled_refined.dim_locations l WHERE l.country = 'Peru') ), services AS (SELECT s.id AS service_id, s.description AS service_description, p.id AS product_id, p.name AS product_name, p.description AS product_description, p.kind AS product_kind FROM prod_lake_ss_refined.services s JOIN prod_lake_ss_refined.products p ON p.id = s.product_id), payments_membership AS (SELECT date_format(p.payed_at, '%Y-%m-%d') payed_at, p.payable_type, p.payable_id, p.plan_id, p.location_id, pm.kind AS payment_method_kind, p.state AS payment_state, st.name AS status_name, pc.name AS payment_company_name, p.id AS payment_id, w.person_id AS person_id, p.amount_paid AS amount_paid, 'Membresía ' AS product_description, p.load_datetime, p.authorization_number, p.contract_number, p.nsu FROM prod_lake_ss_refined.payments p JOIN prod_lake_ss_refined.wallets w ON w.id = p.wallet_id JOIN prod_lake_ss_refined.payment_companies pc ON pc.id = w.payment_company_id JOIN prod_lake_ss_refined.payment_methods pm ON pm.id = pc.payment_method_id LEFT JOIN prod_lake_ss_refined.payment_statuses st ON st.id = p.payment_status_id WHERE p.state = 'payed' AND p.amount_paid > 0 AND p.payable_type = 'Membership' AND year(p.payed_at) = year(CURRENT_DATE) AND p.location_id in (SELECT l.id FROM prod_lake_modeled_refined.dim_locations l WHERE l.country = 'Peru') ), payments_union AS (SELECT CAST(date_format(date_parse(cast(payments_services.payed_at AS varchar(10)), '%Y-%m-%d'), '%Y-%m-%d') AS DATE) payed_at, payments_services.payable_type, payments_services.payable_id, payments_services.plan_id, payments_services.location_id, payments_services.payment_method_kind, payments_services.payment_state, payments_services.status_name, payments_services.payment_company_name, payments_services.payment_id, payments_services.person_id, payments_services.amount_paid, services.product_description, payments_services.load_datetime, payments_services.authorization_number, payments_services.contract_number, payments_services.nsu FROM payments_services INNER JOIN services ON services.service_id = payable_id UNION ALL SELECT date(payments_membership.payed_at), payments_membership.payable_type, payments_membership.payable_id, payments_membership.plan_id, payments_membership.location_id, payments_membership.payment_method_kind, payments_membership.payment_state, payments_membership.status_name, payments_membership.payment_company_name, payments_membership.payment_id, payments_membership.person_id, payments_membership.amount_paid, payments_membership.product_description, payments_membership.load_datetime, payments_membership.authorization_number, payments_membership.contract_number, payments_membership.nsu FROM payments_membership), plans AS (SELECT id AS plan_id, name AS plan_name FROM prod_lake_modeled_refined.dim_plans), units_countries AS (SELECT id AS location_id, country, currency, acronym, name AS location_name FROM prod_lake_modeled_refined.dim_locations), payments_complete AS (SELECT CAST(date_format(date_parse(cast(payed_at AS varchar(10)), '%Y-%m-%d'), '%Y-%m-%d') AS DATE) AS fecha_pago, payment_id AS front_id, acronym AS sigla_unidad, location_name AS nombre_ubicacion, person_id AS matricula_usuario, amount_paid AS cantidad_pago, payable_type AS tipo_pago, plan_name AS PLAN, payment_method_kind AS metodo_pago, CASE WHEN payable_type = 'Service' THEN product_description ELSE concat(product_description, plan_name) END AS descripcion_mensualidad, payment_company_name AS financiero, authorization_number as authorization_number, contract_number as contract_number, nsu FROM payments_union INNER JOIN plans ON plans.plan_id = payments_union.plan_id INNER JOIN units_countries ON units_countries.location_id = payments_union.location_id) SELECT * FROM payments_complete WHERE date_format(fecha_pago, '%Y-%m-%d') BETWEEN '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"'")
+        resultado = []
+        for row in cursor:
+            content = {'fecha_pago':row[0],
+            'front_id':row[1],
+            'sigla_unidad':row[2],
+            'nombre_ubicacion':row[3],
+            'matricula_usuario':row[4],
+            'cantidad_pago':row[5],
+            'tipo_pago':row[6],
+            'PLAN':row[7],
+            'metodo_pago':row[8],
+            'descripcion_mensualidad':row[9],
+            'financiero':row[10],
+            'authorization_number':row[11],
+            'contract_number':row[12],
+            'nsu':row[13]}
+            resultado.append(content)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+    finally:
+             cursor.close()
 server_name = app.config['SERVER_NAME']
 if server_name and ':' in server_name:
     host, port = server_name.split(":")
