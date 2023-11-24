@@ -1,10 +1,12 @@
+import json
+
 import requests as requests
 from flask import Flask, jsonify,request
 import pyodbc
 import pymssql
 #from flask_mysqldb import MySQL
 from pyathena import connect
-
+import requests
 
 app = Flask(__name__)
 
@@ -15,6 +17,7 @@ app.config['MYSQL_DB'] = 'oic_db'
 #mysql = MySQL(app)
 
 conn = pymssql.connect(server='10.84.6.199', user='sa', password='31zDM#OJ9f1g7h!&hsDR', database='VOXIVA')
+sqldatawarehouse = pymssql.connect(server='10.84.6.189', user='sa', password='31zDM#OJ9f1g7h!&hsDR', database='DWH_SF')
 
 @app.route('/products')
 def getAllProducts():
@@ -1264,6 +1267,49 @@ def pagos_procesados(fecha_inicio,fecha_fin):
              cursor.close()
 def format_fecha(fecha):
     return fecha.strftime("%Y-%m-%d")
+
+@app.route('/oracle_sovos/<fecha_inicio>/<fecha_fin>', methods=["POST", "GET"])
+def oracle_sovos(fecha_inicio,fecha_fin):
+        try:
+
+            cursor = sqldatawarehouse.cursor()
+            cursor.execute("SELECT REPLACE(RUC_EMISOR,' ','') RUC_EMISOR,REPLACE(TIPO_DOCUMENT,' ','') TIPO_DOCUMENT,REPLACE(FOLIO,' ','') FOLIO,REPLACE(RUC_RECEPTOR,' ','') RUC_RECEPTOR,FECHA_EMISION,REPLACE(ESTADO_OSE,' ','') ESTADO_OSE, REPLACE(URL,' ','') URL FROM DWH_SF.SOVOS.TRANSACCIONES_SIN_ESTADO_ERP WHERE FECHA_EMISION BETWEEN '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' AND ESTADO_OSE='ACEPTADO_POR_LA_OSE_A_OSE'")
+            records = cursor.fetchall()
+            for row in records:
+                ruc_sovos= row[0]
+                tipo_doc_fiscal = row[1]
+                nro_invoice = row[2]
+                nro_ruc_receptor= row[3]
+                fecha_emision= format_fecha(row[4])
+                estado_ose = row[5]
+                url_sovos= row[6]
+
+                #Inicio de envios sa Oracle  Cloud ERP
+
+                url = "https://oic-prod-1-grvdxyhij8gy-ia.integration.ocp.oraclecloud.com/ic/api/integration/v1/flows/rest/LACL_PE_UPDA_INVO_AP_FROM_SOVO/1.0/documents"
+
+                payload = '<Evento>\r\n   <TipoEvento>'+estado_ose+'</TipoEvento>\r\n   <RucEmisor>'+ruc_sovos+'</RucEmisor>\r\n   <RucReceptor>'+nro_ruc_receptor+'</RucReceptor>\r\n   <TipoCPE>'+tipo_doc_fiscal+'</TipoCPE>\r\n   <Folio>'+nro_invoice+'</Folio>\r\n   <FechaEmision>'+fecha_emision+'</FechaEmision>\r\n   <FechaEvento>'+fecha_emision+' 16:44:38</FechaEvento>\r\n   <URI>'+url_sovos+'</URI>\r\n   <Descripcion>Descripcion D</Descripcion>\r\n   <Observacion>Observacion O</Observacion>\r\n   <CDR>\r\n      <URICDR />\r\n      <CDRB64 />\r\n   </CDR>\r\n</Evento>'
+                headers = {
+                    'Content-Type': 'text/xml',
+                    'Authorization': 'Basic cHJvdmVlZG9yX2Zpc2NhbC5wZTpJbnRlZ3JhY29lcyMyMDIz'
+                }
+
+                response = requests.request("POST", url, headers=headers, data=payload, allow_redirects=False)
+
+                print(payload)
+
+                #Fin de envios a Oracle Cloud ERP
+
+
+                print("\n")
+
+            cursor.close()
+
+            return ruc_sovos
+
+        except Exception as e:
+            print(e)
+
 server_name = app.config['SERVER_NAME']
 if server_name and ':' in server_name:
     host, port = server_name.split(":")
