@@ -1273,7 +1273,7 @@ def oracle_sovos(fecha_inicio,fecha_fin):
         try:
 
             cursor = sqldatawarehouse.cursor()
-            cursor.execute("SELECT REPLACE(RUC_EMISOR,' ','') RUC_EMISOR,REPLACE(TIPO_DOCUMENT,' ','') TIPO_DOCUMENT,REPLACE(FOLIO,' ','') FOLIO,REPLACE(RUC_RECEPTOR,' ','') RUC_RECEPTOR,FECHA_EMISION,REPLACE(ESTADO_OSE,' ','') ESTADO_OSE, REPLACE(URL,' ','') URL FROM DWH_SF.SOVOS.TRANSACCIONES_SIN_ESTADO_ERP WHERE FECHA_EMISION BETWEEN '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' AND ESTADO_OSE='ACEPTADO_POR_LA_OSE_A_OSE'")
+            cursor.execute("SELECT REPLACE(RUC_EMISOR,' ','') RUC_EMISOR,REPLACE(TIPO_DOCUMENT,' ','') TIPO_DOCUMENT,REPLACE(FOLIO,' ','') FOLIO,REPLACE(RUC_RECEPTOR,' ','') RUC_RECEPTOR,FECHA_EMISION,REPLACE(ESTADO_OSE,' ','') ESTADO_OSE, REPLACE(URL,' ','') URL FROM DWH_SF.SOVOS.TRANSACCIONES_SIN_ESTADO_ERP WHERE FECHA_EMISION BETWEEN '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' AND ESTADO_OSE='ACEPTADO_POR_LA_OSE-A-OSE'")
             records = cursor.fetchall()
             for row in records:
                 ruc_sovos= row[0]
@@ -1288,7 +1288,7 @@ def oracle_sovos(fecha_inicio,fecha_fin):
 
                 url = "https://oic-prod-1-grvdxyhij8gy-ia.integration.ocp.oraclecloud.com/ic/api/integration/v1/flows/rest/LACL_PE_UPDA_INVO_AP_FROM_SOVO/1.0/documents"
 
-                payload = '<Evento>\r\n   <TipoEvento>'+estado_ose+'</TipoEvento>\r\n   <RucEmisor>'+ruc_sovos+'</RucEmisor>\r\n   <RucReceptor>'+nro_ruc_receptor+'</RucReceptor>\r\n   <TipoCPE>'+tipo_doc_fiscal+'</TipoCPE>\r\n   <Folio>'+nro_invoice+'</Folio>\r\n   <FechaEmision>'+fecha_emision+'</FechaEmision>\r\n   <FechaEvento>'+fecha_emision+' 16:44:38</FechaEvento>\r\n   <URI>'+url_sovos+'</URI>\r\n   <Descripcion>Descripcion D</Descripcion>\r\n   <Observacion>Observacion O</Observacion>\r\n   <CDR>\r\n      <URICDR />\r\n      <CDRB64 />\r\n   </CDR>\r\n</Evento>'
+                payload = "<Evento>\r\n   <TipoEvento>"''+estado_ose+''"</TipoEvento>\r\n   <RucEmisor>20600597940</RucEmisor>\r\n   <RucReceptor>"''+nro_ruc_receptor+''"</RucReceptor>\r\n   <TipoCPE>"''+tipo_doc_fiscal+''"</TipoCPE>\r\n   <Folio>"''+nro_invoice+''"</Folio>\r\n   <FechaEmision>"''+fecha_emision+''"</FechaEmision>\r\n   <FechaEvento>"''+fecha_emision+''" 16:44:38</FechaEvento>\r\n   <URI>"''+url_sovos+''"</URI>\r\n   <Descripcion>Descripcion D</Descripcion>\r\n   <Observacion>Observacion O</Observacion>\r\n   <CDR>\r\n      <URICDR/>\r\n      <CDRB64/>\r\n   </CDR>\r\n</Evento>"
                 headers = {
                     'Content-Type': 'text/xml',
                     'Authorization': 'Basic cHJvdmVlZG9yX2Zpc2NhbC5wZTpJbnRlZ3JhY29lcyMyMDIz'
@@ -1296,7 +1296,9 @@ def oracle_sovos(fecha_inicio,fecha_fin):
 
                 response = requests.request("POST", url, headers=headers, data=payload, allow_redirects=False)
 
-                print(payload)
+                print(response.text)
+
+
 
                 #Fin de envios a Oracle Cloud ERP
 
