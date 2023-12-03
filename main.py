@@ -1335,6 +1335,22 @@ def invoice_ss_latam(fecha_inicio,fecha_fin):
         print(e)
     finally:
         cursor.close()
+@app.route('/auditoria_data_lake/')
+def auditoria_data_lake():
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+        cursor.execute("select date_format(max(load_datetime) , '%Y-%m-%d %H:%i:%s') HORA_SINCRONIZACION_UTC,'PROD_LAKE_MODELED_REFINED.MINIFACTU_OTC' as TABLA_DATA_LAKE from prod_lake_modeled_refined.minifactu_otc union all select date_format(max(load_datetime) , '%Y-%m-%d %H:%i:%s') HORA_SINCRONIZACION_UTC,'PROD_LAKE_MINIFACTU_REFINED.INVOICES' as TABLA_DATA_LAKE from prod_lake_minifactu_refined.invoices")
+        resultado = []
+        for row in cursor:
+            content = { 'HORA_SINCRONIZACION_UTC':row[0],
+                        'TABLA_DATA_LAKE':row[1]}
+            resultado.append(content)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
 server_name = app.config['SERVER_NAME']
 if server_name and ':' in server_name:
     host, port = server_name.split(":")
