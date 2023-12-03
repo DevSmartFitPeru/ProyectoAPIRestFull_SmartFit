@@ -1312,6 +1312,30 @@ def oracle_sovos(fecha_inicio,fecha_fin):
         except Exception as e:
             print(e)
 
+@app.route('/invoice_ss_latam/<fecha_inicio>/<fecha_fin>')
+def invoice_ss_latam(fecha_inicio,fecha_fin):
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+        cursor.execute("select id_payment,status_pagamento,date_format(payed_at , '%Y-%m-%d') payed_at ,amount_paid ,forma_pagamento ,country ,acronym,minifactu_id ,errors ,error from prod_lake_modeled_refined.minifactu_otc where date_format(payed_at, '%Y-%m-%d') BETWEEN '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' and country in('Peru','Colômbia','México','Chile')")
+        resultado = []
+        for row in cursor:
+            content = { 'id_payment':row[0],
+            'status_pagamento':row[1],
+            'payed_at':row[2],
+            'amount_paid': row[3],
+            'forma_pagamento':row[4],
+            'country':row[5],
+            'acronym':row[6],
+            'minifactu_id':row[7],
+            'errors':row[8],
+            'error':row[9]}
+            resultado.append(content)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
 server_name = app.config['SERVER_NAME']
 if server_name and ':' in server_name:
     host, port = server_name.split(":")
