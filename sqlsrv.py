@@ -7,4 +7,3 @@ while row:
         print(str(row[0]) + " " + str(row[1]) + " " + str(row[2]))
         row = cursor.fetchone()
 
-        https: // terminalcheatsheet.com / es / guides / curl - rest - api
