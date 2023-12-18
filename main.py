@@ -4,6 +4,7 @@ import requests as requests
 from flask import Flask, jsonify,request
 import pyodbc
 import pymssql
+import psycopg2
 #from flask_mysqldb import MySQL
 from pyathena import connect
 import requests
@@ -18,6 +19,7 @@ app.config['MYSQL_DB'] = 'oic_db'
 
 conn = pymssql.connect(server='10.84.6.199', user='sa', password='31zDM#OJ9f1g7h!&hsDR', database='VOXIVA')
 sqldatawarehouse = pymssql.connect(server='10.84.6.189', user='sa', password='31zDM#OJ9f1g7h!&hsDR', database='DWH_SF')
+con189 = pymssql.connect(server='10.84.6.189', user='sa', password='31zDM#OJ9f1g7h!&hsDR', database='TUNQUI_LATAM')
 
 @app.route('/products')
 def getAllProducts():
@@ -1355,6 +1357,60 @@ def auditoria_data_lake():
         print(e)
     finally:
         cursor.close()
+@app.route('/monitoreo_latam/<fecha_inicio>/<fecha_fin>')
+def monitoreo_latam(fecha_inicio,fecha_fin):
+    try:
+        db_pg = psycopg2.connect(
+            host="db-2.ckioqeuxcht7.us-east-2.rds.amazonaws.com",
+            database="postgres",
+            user="smartfit",
+            password="Pagamento2023*",
+            port=5432
+        )
+
+        cursor = con189.cursor()
+        cursor.execute("SELECT TOP 500 ID_PAYMENT,STATUS_PAGAMENTO,PAYET_AT,AMOUNT_PAID,FORMA_PAGAMENTO,ACRONYM,MINIFACTU_ID,ERROR,STATUS_ERP_ORACLE_CLOUD, ISNULL(FECHA_INTEGRACION,'')as FECHA_INTEGRACION,NRO_AVISO_DEBITO,isnull(FECHA_INTEGRACION_AD,''),ESTADO_AD,COUNTRY,isnull(IMPORTE_INVOICE_AR,'') FROM TUNQUI_LATAM.ATHENA.PAGOS_PROCESADOS_SMARTSYSTEM_LATAM WHERE PAYET_AT between '"+fecha_inicio+"' and '"+fecha_fin+"'")
+        resultado = []
+        for row in cursor:
+            content = {
+                'ID_PAYMENT':row[0],
+                'STATUS_PAGAMENTO':row[1],
+                'PAYET_AT':row[2],
+                'AMOUNT_PAID':row[3],
+                'FORMA_PAGAMENTO':row[4],
+                'ACRONYM':row[5],
+                'MINIFACTU_ID':row[6],
+                'ERROR':row[7],
+                'STATUS_ERP_ORACLE_CLOUD':row[8],
+                'FECHA_INTEGRACION':row[9],
+                'NRO_AVISO_DEBITO':row[10],
+                'FECHA_INTEGRACION_AD' : row[11],
+                'ESTADO_AD' : row[12],
+                'COUNTRY' : row[13],
+                'IMPORTE_INVOICE_AR' : row[14]
+            }
+            #CONECTAMOS A LA DB RDS POSTGRESSQL AWS
+            con_pg = db_pg.cursor()
+            sql = f"INSERT INTO public.monitoreo_latam(ID_PAYMENT,STATUS_PAGAMENTO,PAYET_AT,AMOUNT_PAID,FORMA_PAGAMENTO,ACRONYM,MINIFACTU_ID,ERROR,STATUS_ERP_ORACLE_CLOUD,FECHA_INTEGRACION,NRO_AVISO_DEBITO,FECHA_INTEGRACION_AD,ESTADO_AD,COUNTRY,IMPORTE_INVOICE_AR) values('{row[0]}','{row[1]}' , '{row[2]}' ,'{row[3]}','{row[4]}','{row[5]}','{row[6]}','{row[7]}','{row[8]}','{row[9]}','{row[10]}','{row[11]}','{row[12]}','{row[13]}','{row[14]}')"
+
+            con_pg.execute(sql)
+            db_pg.commit()
+
+            resultado.append(content)
+        #print(resultado)
+        return jsonify(resultado)
+
+    except Exception as e:
+        print(e)
+        obj_response = {
+            'status_code' : 500,
+            'message' : 'Error en la ejecucion del API',
+            'error' : e
+        }
+        return jsonify(obj_response),500
+    finally:
+        cursor.close()
+
 server_name = app.config['SERVER_NAME']
 if server_name and ':' in server_name:
     host, port = server_name.split(":")
