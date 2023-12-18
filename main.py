@@ -1369,7 +1369,7 @@ def monitoreo_latam(fecha_inicio,fecha_fin):
         )
 
         cursor = con189.cursor()
-        cursor.execute("SELECT TOP 500 ID_PAYMENT,STATUS_PAGAMENTO,PAYET_AT,AMOUNT_PAID,FORMA_PAGAMENTO,ACRONYM,MINIFACTU_ID,ERROR,STATUS_ERP_ORACLE_CLOUD, ISNULL(FECHA_INTEGRACION,'')as FECHA_INTEGRACION,NRO_AVISO_DEBITO,isnull(FECHA_INTEGRACION_AD,''),ESTADO_AD,COUNTRY,isnull(IMPORTE_INVOICE_AR,'') FROM TUNQUI_LATAM.ATHENA.PAGOS_PROCESADOS_SMARTSYSTEM_LATAM WHERE PAYET_AT between '"+fecha_inicio+"' and '"+fecha_fin+"'")
+        cursor.execute("SELECT ID_PAYMENT,STATUS_PAGAMENTO,PAYET_AT,AMOUNT_PAID,FORMA_PAGAMENTO,ACRONYM,MINIFACTU_ID,ERROR,STATUS_ERP_ORACLE_CLOUD, ISNULL(FECHA_INTEGRACION,'')as FECHA_INTEGRACION,NRO_AVISO_DEBITO,isnull(FECHA_INTEGRACION_AD,''),ESTADO_AD,COUNTRY,isnull(IMPORTE_INVOICE_AR,'') FROM TUNQUI_LATAM.ATHENA.PAGOS_PROCESADOS_SMARTSYSTEM_LATAM WHERE PAYET_AT between '"+fecha_inicio+"' and '"+fecha_fin+"'")
         resultado = []
         for row in cursor:
             content = {
@@ -1397,8 +1397,10 @@ def monitoreo_latam(fecha_inicio,fecha_fin):
             db_pg.commit()
 
             resultado.append(content)
-        #print(resultado)
-        return jsonify(resultado)
+        obj_response ={
+            'Message' : f'Se cargaron {len(resultado)} datos exitosamente'
+        }
+        return jsonify(obj_response),200
 
     except Exception as e:
         print(e)
