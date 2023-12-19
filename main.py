@@ -4,7 +4,7 @@ import requests as requests
 from flask import Flask, jsonify,request
 import pyodbc
 import pymssql
-import psycopg2
+#import psycopg2
 #from flask_mysqldb import MySQL
 from pyathena import connect
 import requests
