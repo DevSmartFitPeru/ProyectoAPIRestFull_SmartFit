@@ -17,7 +17,7 @@ app.config['MYSQL_PASSWORD'] = 'Lu1s0Ic2023'
 app.config['MYSQL_DB'] = 'oic_db'
 #mysql = MySQL(app)
 
-conn = pymssql.connect(server='10.84.6.199', user='sa', password='31zDM#OJ9f1g7h!&hsDR', database='VOXIVA')
+#conn = pymssql.connect(server='10.84.6.199', user='sa', password='31zDM#OJ9f1g7h!&hsDR', database='VOXIVA')
 sqldatawarehouse = pymssql.connect(server='10.84.6.189', user='sa', password='31zDM#OJ9f1g7h!&hsDR', database='DWH_SF')
 con189 = pymssql.connect(server='10.84.6.189', user='sa', password='31zDM#OJ9f1g7h!&hsDR', database='TUNQUI_LATAM')
 
