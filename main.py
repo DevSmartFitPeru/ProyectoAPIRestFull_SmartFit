@@ -18,8 +18,8 @@ app.config['MYSQL_DB'] = 'oic_db'
 #mysql = MySQL(app)
 
 #conn = pymssql.connect(server='10.84.6.199', user='sa', password='31zDM#OJ9f1g7h!&hsDR', database='VOXIVA')
-sqldatawarehouse = pymssql.connect(server='10.84.6.189', user='sa', password='31zDM#OJ9f1g7h!&hsDR', database='DWH_SF')
-con189 = pymssql.connect(server='10.84.6.189', user='sa', password='31zDM#OJ9f1g7h!&hsDR', database='TUNQUI_LATAM')
+sqldatawarehouse = pymssql.connect(server='10.84.6.189', user='dev', password='DevTIPe2024!!$', database='DWH_SF')
+con189 = pymssql.connect(server='10.84.6.189', user='dev', password='DevTIPe2024!!$', database='TUNQUI_LATAM')
 
 @app.route('/products')
 def getAllProducts():
