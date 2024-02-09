@@ -1,13 +1,5 @@
-import json
-import os
-
 import psycopg2
-import requests as requests
-from flask import Flask, jsonify,request
-import pyodbc
-import pymssql
-#import psycopg2
-#from flask_mysqldb import MySQL
+from flask import Flask, jsonify
 from pyathena import connect
 import requests
 
@@ -885,7 +877,7 @@ def pagos_procesados_aws(fecha_inicio,fecha_fin):
             print('Registrando pagos en la en AWS - PostgreSQL')
             cur = connposgresql.cursor()
             query_sql_insert = 'insert into "ATHENA"."PAGOS_PROCESADOS_SMARTSYSTEM_LATAM"  (ID_PAYMENT,STATUS_PAGAMENTO,PAYET_AT,AMOUNT_PAID,FORMA_PAGAMENTO,COUNTRY,ACRONYM,MINIFACTU_ID,ERROR) ' \
-                              " values("'' + id_payment + ''","'' + "'" + str( status_pagamento) + "'" + ''","'' + "'" + str(payed_at) + "'" + ''","'' + amount_paid + ''","'' + "'" + str(forma_pagamento) + "'" + ''","'' + "'" + str(country) + "'" + ''","'' + "'" + str( acronym) + "'" + ''","'' + minifactu_id + ''","'' + "'" + str(error) + "'" + ''") "
+                              " values("'' + id_payment + ''","'' + "'" + str(status_pagamento) + "'" + ''","'' + "'" + str(payed_at) + "'" + ''","'' + amount_paid + ''","'' + "'" + str(forma_pagamento) + "'" + ''","'' + "'" + str(country) + "'" + ''","'' + "'" + str( acronym) + "'" + ''","'' + minifactu_id + ''","'' + "'" + str(error) + "'" + ''") "
             cur.execute(query_sql_insert)
         connposgresql.commit()
         return 'Registro exitoso'
