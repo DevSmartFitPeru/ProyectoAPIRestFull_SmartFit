@@ -13,68 +13,12 @@ import requests
 
 app = Flask(__name__)
 
-app.config['MYSQL_HOST'] = 'oic-db-prod.cgzshounia8v.us-east-1.rds.amazonaws.com'
-app.config['MYSQL_USER'] = 'luis.azanero'
-app.config['MYSQL_PASSWORD'] = 'Lu1s0Ic2023'
-app.config['MYSQL_DB'] = 'oic_db'
-#mysql = MySQL(app)
-
 #conn = pymssql.connect(server='10.84.6.199', user='sa', password='31zDM#OJ9f1g7h!&hsDR', database='VOXIVA')
 #sqldatawarehouse = pymssql.connect(server='10.84.6.189', user='dev', password='DevTIPe2024!!$', database='DWH_SF')
 #con189 = pymssql.connect(server='10.84.6.189', user='dev', password='DevTIPe2024!!$', database='TUNQUI_LATAM')
 
 #Cadena de Conexion PostsgreSQL
 connposgresql = psycopg2.connect("postgresql://postgres:root@localhost:5432/DWH")
-@app.route('/products')
-def getAllProducts():
-    try:
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT id,country ,product_from_to_origin_system ,product_from_to_front_product_id ,front_product_name ,erp_item_ar_id ,erp_item_ar_name from oic_db.product_from_to_version where country='Peru'")
-        data = cur.fetchall()
-        resultado = []
-        for row in data:
-            content = {'id': row[0],'country': row[1],'product_from_to_origin_system': row[2],'product_from_to_front_product_id': row[3],'front_product_name': row[4],'erp_item_ar_id': row[5],'erp_item_ar_name': row[6]}
-            resultado.append(content)
-        return jsonify(resultado)
-
-    except Exception as e:
-        print(e)
-    finally:
-        cur.close()
-
-@app.route('/customer')
-def customer():
-    try:
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT id,erp_customer_id ,full_name ,type_person ,identification_financial_responsible,chargeback_acquirer_label  from oic_db.customer WHERE nationality_code ='PE'")
-        data = cur.fetchall()
-        resultado = []
-        for row in data:
-            content = { 'id':row[0], 'erp_customer_id': row[1],'full_name': row[2],'type_person': row[3],'identification_financial_responsible': row[4],'chargeback_acquirer_label': row[5] }
-            resultado.append(content)
-        return jsonify(resultado)
-
-    except Exception as e:
-        print(e)
-    finally:
-        cur.close()
-
-@app.route('/cliente/<int:id>')
-def cliente(id):
-    try:
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT id,erp_customer_id ,full_name ,type_person ,identification_financial_responsible,chargeback_acquirer_label from oic_db.customer WHERE nationality_code ='PE' and identification_financial_responsible ="+ str(id))
-        data = cur.fetchall()
-        resultado = []
-        for row in data:
-            content = { 'id':row[0], 'erp_customer_id': row[1],'full_name': row[2],'type_person': row[3],'identification_financial_responsible': row[4],'chargeback_acquirer_label': row[5] }
-            resultado.append(content)
-        return jsonify(resultado)
-
-    except Exception as e:
-        print(e)
-    finally:
-        cur.close()
 
 @app.route('/location')
 def location():
@@ -206,76 +150,6 @@ def fin(fecha_inicio,fecha_fin):
         print(e)
     finally:
              cursor.close()
-@app.route('/oic_db/<fecha_inicio>/<fecha_fin>')
-def oic_db(fecha_inicio, fecha_fin):
-    try:
-        cur = mysql.connection.cursor()
-        cur.execute("select distinct otc.id ,date_format(otc.created_at, '%Y-%m-%d %H:%i') created_at ,otc.country ,otc.unity_identification ,otc.erp_business_unit ,otc.erp_legal_entity ,otc.erp_subsidiary ,otc.acronym ,otc.to_generate_invoice , otc.origin_system ,otc.minifactu_id ,otc.front_id ,otc.conciliator_id conciliator_id_otc ,date_format(otc.erp_invoice_customer_send_to_erp_at, '%Y-%m-%d %H:%i')erp_invoice_customer_send_to_erp_at , date_format(otc.erp_invoice_customer_returned_from_erp_at, '%Y-%m-%d %H:%i') erp_invoice_customer_returned_from_erp_at ,erp_invoice_customer_status_transaction, date_format(otc.erp_receivable_sent_to_erp_at, '%Y-%m-%d %H:%i') erp_receivable_sent_to_erp_at , date_format(otc.erp_receivable_returned_from_erp_at, '%Y-%m-%d %H:%i') erp_receivable_returned_from_erp_at ,erp_receivable_customer_identification,erp_receivable_status_transaction , date_format(otc.erp_invoice_send_to_erp_at, '%Y-%m-%d %H:%i')  erp_invoice_send_to_erp_at, date_format(otc.erp_invoice_returned_from_erp_at, '%Y-%m-%d %H:%i') erp_invoice_returned_from_erp_at , erp_invoice_status_transaction, date_format(otc.erp_receipt_send_to_erp_at, '%Y-%m-%d %H:%i') erp_receipt_send_to_erp_at , date_format(otc.erp_receipt_returned_from_erp_at, '%Y-%m-%d %H:%i') erp_receipt_returned_from_erp_at ,erp_receipt_status_transaction,r.erp_receivable_id,r.erp_clustered_receivable_id ,r.conciliator_id ,r.transaction_type ,r.contract_number ,r.credit_card_brand ,r.truncated_credit_card ,r.price_list_value ,r.gross_value ,r.net_value ,r.interest_value,r.administration_tax_percentage ,r.administration_tax_value , date_format(r.billing_date, '%Y-%m-%d') billing_date , date_format(r.credit_date, '%Y-%m-%d') credit_date ,r.registration_gym_student ,r.fullname_gym_student ,r.oic_ids,cliente.identification_financial_responsible , cliente.document_kind, Substring(UPPER(cliente.full_name), 1, 75) full_name, ii.front_product_id ,ii.front_plan_id ,ii.front_addon_id ,ii.erp_item_ar_id ,ii.erp_item_ar_name , url ,status_url from oic_db.order_to_cash otc inner join oic_db.receivable r on otc.id =r.order_to_cash_id inner join oic_db.invoice_customer cliente on otc.id = cliente.order_to_cash_id inner join oic_db.invoice i  on otc.id = i.order_to_cash_id left join oic_db.invoice_items ii  on i.id  = ii.id_invoice LEFT JOIN oic_db.invoice_erp_configurations iec ON iec.country = otc.country where DATE_FORMAT(otc.created_at,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' and otc.country ='Peru' AND iec.erp_business_unit = otc.erp_business_unit AND iec.erp_legal_entity = otc.erp_legal_entity AND iec.erp_subsidiary = otc.erp_subsidiary  AND iec.origin_system = otc.origin_system  AND iec.operation = otc.operation")
-        data = cur.fetchall()
-        resultado = []
-        for row in data:
-            content = {'id': row[0],
-            'created_at': row[1],
-            'country': row[2],
-            'unity_identification': row[3],
-            'erp_business_unit': row[4],
-            'erp_legal_entity': row[5],
-            'erp_subsidiary': row[6],
-            'acronym': row[7],
-            'to_generate_invoice': row[8],
-            'origin_system': row[9],
-            'minifactu_id': row[10],
-            'front_id': row[11],
-            'conciliator_id_otc': row[12],
-            'erp_invoice_customer_send_to_erp_at': row[13],
-            'erp_invoice_customer_returned_from_erp_at': row[14],
-            'erp_invoice_customer_status_transaction': row[15],
-            'erp_receivable_sent_to_erp_at': row[16],
-            'erp_receivable_returned_from_erp_at': row[17],
-            'erp_receivable_customer_identification': row[18],
-            'erp_receivable_status_transaction': row[19],
-            'erp_invoice_send_to_erp_at': row[20],
-            'erp_invoice_returned_from_erp_at': row[21],
-            'erp_invoice_status_transaction': row[22],
-            'erp_receipt_send_to_erp_at': row[23],
-            'erp_receipt_returned_from_erp_at': row[24],
-            'erp_receipt_status_transaction': row[25],
-            'erp_receivable_id': row[26],
-            'erp_clustered_receivable_id': row[27],
-            'conciliator_id': row[28],
-            'transaction_type': row[29],
-            'contract_number': row[30],
-            'credit_card_brand': row[31],
-            'truncated_credit_card': row[32],
-            'price_list_value': row[33],
-            'gross_value': row[34],
-            'net_value': row[35],
-            'interest_value': row[36],
-            'administration_tax_percentage': row[37],
-            'administration_tax_value': row[38],
-            'billing_date': row[39],
-            'credit_date': row[40],
-            'registration_gym_student': row[41],
-            'fullname_gym_student': row[42],
-            'oic_ids': row[43],
-            'identification_financial_responsible': row[44],
-            'document_kind': row[45],
-            'full_name': row[46],
-            'front_product_id': row[47],
-            'front_plan_id': row[48],
-            'front_addon_id': row[49],
-            'erp_item_ar_id': row[50],
-            'erp_item_ar_name': row[51],
-            'url': row[52],
-            'status_url': row[53]}
-            resultado.append(content)
-        return jsonify(resultado)
-
-    except Exception as e:
-        print(e)
-    finally:
-        cur.close()
-
 @app.route('/monitor_otc/<fecha_inicio>/<fecha_fin>')
 def monitor_otc(fecha_inicio,fecha_fin):
     try:
@@ -293,96 +167,6 @@ def monitor_otc(fecha_inicio,fecha_fin):
         print(e)
     finally:
         cursor.close()
-@app.route('/dashboard_otc/<fecha_inicio>/<fecha_fin>')
-def dashboard_otc(fecha_inicio, fecha_fin):
-    try:
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT date_format(otc.created_at, '%Y-%m-%d') as created_at ,erp_business_unit,erp_invoice_customer_status_transaction,erp_receivable_status_transaction,erp_invoice_status_transaction,erp_receipt_status_transaction,count(*) as total_tx,FORMAT(SUM(r.price_list_value), 2) as Valorizado from oic_db.order_to_cash otc inner join oic_db.receivable r on otc.id =r.order_to_cash_id  where date_format(otc.created_at, '%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' and otc.country ='Peru' group by date_format(otc.created_at, '%Y-%m-%d'),erp_business_unit,erp_invoice_customer_status_transaction,erp_receivable_status_transaction;")
-        data = cur.fetchall()
-        resultado = []
-        for row in data:
-            content = {
-            'created_at': row[0],
-            'erp_business_unit': row[1],
-            'erp_invoice_customer_status_transaction': row[2],
-            'erp_receivable_status_transaction': row[3],
-            'erp_invoice_status_transaction': row[4],
-            'erp_receipt_status_transaction': row[5],
-            'total_tx': row[6],
-            'valorizado': row[7]}
-            resultado.append(content)
-        return jsonify(resultado)
-
-    except Exception as e:
-        print(e)
-    finally:
-        cur.close()
-@app.route('/sovos/<fecha_inicio>/<fecha_fin>')
-def sovos(fecha_inicio, fecha_fin):
-    try:
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT distinct otc.id ,date_format(otc.created_at, '%Y-%m-%d') created_at ,otc.country ,otc.unity_identification ,otc.erp_business_unit ,otc.erp_legal_entity ,otc.erp_subsidiary ,otc.acronym ,otc.to_generate_invoice , otc.origin_system ,otc.minifactu_id ,otc.front_id ,date_format(otc.erp_invoice_customer_send_to_erp_at, '%Y-%m-%d %H:%i') erp_invoice_customer_send_to_erp_at ,date_format(erp_invoice_customer_returned_from_erp_at, '%Y-%m-%d %H:%i')  erp_invoice_customer_returned_from_erp_at ,erp_invoice_customer_status_transaction,date_format(erp_receivable_sent_to_erp_at, '%Y-%m-%d %H:%i') erp_receivable_sent_to_erp_at , date_format(erp_receivable_returned_from_erp_at, '%Y-%m-%d %H:%i') erp_receivable_returned_from_erp_at ,erp_receivable_customer_identification,erp_receivable_status_transaction ,date_format(erp_invoice_send_to_erp_at, '%Y-%m-%d %H:%i') erp_invoice_send_to_erp_at, date_format(erp_invoice_returned_from_erp_at, '%Y-%m-%d %H:%i') erp_invoice_returned_from_erp_at ,erp_invoice_status_transaction,date_format(erp_receipt_send_to_erp_at, '%Y-%m-%d %H:%i') erp_receipt_send_to_erp_at , date_format(erp_receipt_returned_from_erp_at, '%Y-%m-%d %H:%i') erp_receipt_returned_from_erp_at ,erp_receipt_status_transaction, r.erp_receivable_id,r.erp_clustered_receivable_id , r.conciliator_id ,r.transaction_type ,r.contract_number ,r.credit_card_brand ,r.truncated_credit_card ,r.price_list_value ,r.interest_value,r.administration_tax_percentage ,r.administration_tax_value , date_format( r.billing_date, '%Y-%m-%d') billing_date ,date_format(r.credit_date, '%Y-%m-%d') credit_date ,r.registration_gym_student ,r.fullname_gym_student ,r.oic_ids,cliente.identification_financial_responsible ,cliente.document_kind,Substring(UPPER(cliente.full_name), 1, 75) full_name,ii.front_product_id,ii.erp_item_ar_id ,ii.erp_item_ar_name ,url ,status_url from oic_db.order_to_cash otc inner join oic_db.receivable r on otc.id =r.order_to_cash_id inner join oic_db.invoice_customer cliente on otc.id = cliente.order_to_cash_id inner join oic_db.invoice i  on otc.id = i.order_to_cash_id left join oic_db.invoice_items ii  on i.id  = ii.id_invoice LEFT JOIN oic_db.invoice_erp_configurations iec ON iec.country = otc.country where DATE_FORMAT(otc.created_at,'%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' and otc .country ='Peru' AND iec.erp_business_unit = otc.erp_business_unit AND iec.erp_legal_entity = otc.erp_legal_entity AND iec.erp_subsidiary = otc.erp_subsidiary AND iec.origin_system = otc.origin_system AND iec.operation = otc.operation AND status_url ='error';")
-        data = cur.fetchall()
-        resultado = []
-        for row in data:
-            content = {
-            'id': row[0],
-            'created_at': row[1],
-            'country': row[2],
-            'unity_identification': row[3],
-            'erp_business_unit': row[4],
-            'erp_legal_entity': row[5],
-            'erp_subsidiary': row[6],
-            'acronym': row[7],
-            'to_generate_invoice': row[8],
-            'origin_system': row[9],
-            'minifactu_id': row[10],
-            'front_id': row[11],
-            'erp_invoice_customer_send_to_erp_at': row[12],
-            'erp_invoice_customer_returned_from_erp_at': row[13],
-            'erp_invoice_customer_status_transaction': row[14],
-            'erp_receivable_sent_to_erp_at': row[15],
-            'erp_receivable_returned_from_erp_at': row[16],
-            'erp_receivable_customer_identification': row[17],
-            'erp_receivable_status_transaction': row[18],
-            'erp_invoice_send_to_erp_at': row[19],
-            'erp_invoice_returned_from_erp_at': row[20],
-            'erp_invoice_status_transaction': row[21],
-            'erp_receipt_send_to_erp_at': row[22],
-            'erp_receipt_returned_from_erp_at': row[23],
-            'erp_receipt_status_transaction': row[24],
-            'erp_receivable_id': row[25],
-            'erp_clustered_receivable_id': row[26],
-            'conciliator_id': row[27],
-            'transaction_type': row[28],
-            'contract_number': row[29],
-            'credit_card_brand': row[30],
-            'truncated_credit_card': row[31],
-            'price_list_value': row[32],
-            'interest_value': row[33],
-            'administration_tax_percentage': row[34],
-            'administration_tax_value': row[35],
-            'billing_date': row[36],
-            'credit_date': row[37],
-            'registration_gym_student': row[38],
-            'fullname_gym_student': row[39],
-            'oic_ids': row[40],
-            'identification_financial_responsible': row[41],
-            'document_kind': row[42],
-            'full_name': row[43],
-            'front_product_id': row[44],
-            'erp_item_ar_id': row[45],
-            'erp_item_ar_name': row[46],
-            'url': row[47],
-            'status_url': row[48]}
-            resultado.append(content)
-        return jsonify(resultado)
-
-    except Exception as e:
-        print(e)
-    finally:
-        cur.close()
-
 @app.route('/error_minifactu/<fecha_inicio>/<fecha_fin>')
 def error_minifactu(fecha_inicio,fecha_fin):
     try:
@@ -425,28 +209,6 @@ def error_minifactu(fecha_inicio,fecha_fin):
         print(e)
     finally:
         cursor.close()
-@app.route('/facturacion_rp/<fecha_inicio>/<fecha_fin>')
-def facturacion_rp(fecha_inicio, fecha_fin):
-    try:
-        cur = mysql.connection.cursor()
-        cur.execute("Select CASE WHEN acronym ='LIMVMT1' THEN '75' WHEN acronym ='CUSCUS1' THEN '31' WHEN acronym ='HUAHUA1' THEN '6' WHEN acronym ='PIUPIU1' THEN '10' WHEN acronym ='LIMATE1' THEN '59' WHEN acronym ='TRUTRU2' THEN '14' WHEN acronym ='CHICLA2' THEN '3' WHEN acronym ='CAJCAJ1' THEN '33' WHEN acronym ='AQPCAY2' THEN '1' END as Numeracion, CASE WHEN acronym ='LIMVMT1' THEN 'LC-410'  WHEN acronym ='CUSCUS1' THEN 'TI-04' WHEN acronym ='HUAHUA1' THEN 'LE-02'  WHEN acronym ='PIUPIU1' THEN 'TI-04' WHEN acronym ='LIMATE1' THEN 'TI-206' WHEN acronym ='TRUTRU2' THEN 'LC-201'  WHEN acronym ='CHICLA2' THEN 'LC-203' WHEN acronym ='CAJCAJ1' THEN 'TI-01'  WHEN acronym ='AQPCAY2' THEN 'LC-301' END as Cod_RP,date_format(otc.created_at, '%Y-%m-%d') as Fecha, date_format(otc.created_at, '%Y%m%d') fecha_rp, count(*) as Total_Transacciones, round(SUM(r.price_list_value/1.18),2) as Base_Imponible from oic_db.order_to_cash otc inner join oic_db.receivable r on otc.id = r.order_to_cash_id  where date_format(otc.created_at, '%Y-%m-%d')  between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' and country ='Peru' and otc.erp_invoice_status_transaction ='created_at_erp' and acronym in  ('LIMVMT1', 'CUSCUS1','HUAHUA1', 'PIUPIU1','LIMATE1','TRUTRU2','CHICLA2', 'CAJCAJ1', 'AQPCAY2') group by acronym order by Fecha desc;")
-        data = cur.fetchall()
-        resultado = []
-        for row in data:
-            content = {
-            'Numeracion': row[0],
-            'cod_RP': row[1],
-            'Fecha': row[2],
-            'fecha_rp': row[3],
-            'Total_Transacciones': row[4],
-            'Base_Imponible': row[5]}
-            resultado.append(content)
-        return jsonify(resultado)
-
-    except Exception as e:
-        print(e)
-    finally:
-        cur.close()
 @app.route('/scheduled')
 def scheduled():
     try:
@@ -476,54 +238,6 @@ def scheduled():
         print(e)
     finally:
              cursor.close()
-
-@app.route('/gesplan/<fecha_inicio>/<fecha_fin>')
-def gesplan(fecha_inicio, fecha_fin):
-    try:
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT otc.minifactu_id, date_format(otc.created_at, '%Y-%m-%d') created_at,otc.erp_receipt_status_transaction , otc.erp_business_unit, otc.front_id, otc.erp_subsidiary, recg.erp_source_name, recg.erp_type_transaction, recg.erp_payments_terms, recg.erp_currency_code, recg.erp_currency_conversion_type, crc.identification_financial_responsible, crc.full_name, date_format(rec.credit_date, '%Y-%m-%d') AS fecha_cobro, rftv.bank_number, right(rftv.bank_branch, 4) AS bank_branch, convert(rftv.bank_account, unsigned) AS bank_account, RTRIM(concat('RD_', rftv.bank_number, ' ', right(rftv.bank_branch, 4), ' ', convert(rftv.bank_account, unsigned))) Receipt_Method, RTRIM(concat(crc.identification_financial_responsible, 'Faturar')) AS Customer_Site, cast(IFNULL(rec.gross_value, 0) AS decimal(18, 2)) - cast(IFNULL(rec.administration_tax_value, 0) AS decimal(18, 2))AS comision, rec.credit_card_brand,rec.contract_number, rec.transaction_type, date_format(rec.billing_date, '%Y-%m-%d') billing_date, rec.price_list_value, rec.nsu,  date_format(rec.credit_date, '%Y-%m-%d') credit_date, rec.gross_value, rec.authorization_code, rec.erp_clustered_receivable_id,  rec.transaction_type payment_method FROM receivable rec INNER JOIN order_to_cash otc ON otc.id = rec.order_to_cash_id  INNER JOIN  customer crc  ON crc.identification_financial_responsible = otc.erp_receivable_customer_identification  LEFT JOIN  receivable_erp_configurations recg  ON recg.country = otc.country AND recg.origin_system = otc.origin_system AND recg.operation = otc.operation AND recg.transaction_type = rec.transaction_type AND recg.erp_business_unit = otc.erp_business_unit AND recg.memoline_setting = 'gross_value' AND recg.converted_smartfin = rec.converted_smartfin LEFT JOIN receipt_from_to_version rftv ON rftv.origin_system = otc.origin_system AND rftv.order_to_cash_operation = otc.operation AND rftv.erp_business_unit = otc.erp_business_unit AND rftv.receivable_transaction_type = rec.transaction_type AND rftv.erp_receivable_customer_identification = crc.identification_financial_responsible WHERE date_format(otc.created_at, '%Y-%m-%d') between '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' AND otc.country = 'Peru'")
-        data = cur.fetchall()
-        resultado = []
-        for row in data:
-            content = {
-            'minifactu_id': row[0],
-            'created_at': row[1],
-            'erp_receipt_status_transaction': row[2],
-            'erp_business_unit': row[3],
-            'front_id': row[4],
-            'erp_subsidiary': row[5],
-            'erp_source_name': row[6],
-            'erp_type_transaction': row[7],
-            'erp_payments_terms': row[8],
-            'erp_currency_code': row[9],
-            'erp_currency_conversion_type': row[10],
-            'identification_financial_responsible': row[11],
-            'full_name': row[12],
-            'fecha_cobro': row[13],
-            'bank_number': row[14],
-            'bank_branch': row[15],
-            'bank_account': row[16],
-            'Receipt_Method': row[17],
-            'Customer_Site': row[18],
-            'comision': row[19],
-            'credit_card_brand': row[20],
-            'contract_number': row[21],
-            'transaction_type': row[22],
-            'billing_date': row[23],
-            'price_list_value': row[24],
-            'nsu': row[25],
-            'credit_date': row[26],
-            'gross_value': row[27],
-            'authorization_code': row[28],
-            'erp_clustered_receivable_id': row[29],
-            'payment_method': row[30]}
-            resultado.append(content)
-        return jsonify(resultado)
-
-    except Exception as e:
-        print(e)
-    finally:
-        cur.close()
 
 @app.route('/scheduled_pe')
 def scheduled_pe():
@@ -585,96 +299,6 @@ def invoice_latam():
     finally:
              cursor.close()
 
-#AQUI INICIA LOS API REST PARA VOXIVA
-
-@app.route('/unidades/<geografico>')
-def unidades(geografico):
-        try:
-            cars = []
-            cursor = conn.cursor()
-            cursor.execute("SELECT ID_UNIDAD ,CODIGO ,UNIDAD ,RUC ,COMPANIA ,SERIE_BOLETAS ,SERIE_FACTURAS ,COMERCIO_VISA_INGENICO ,COMERCIO_MC_INGENICO ,ESTADO ,CODIGO_TCI ,CODIGO_ESTABLECIMIENTO_SUNAT ,DIRECCION ,DISTRITO ,PROVINCIA ,DEPARTAMENTO ,UBIGEO_UNIDAD ,AFORO ,CONVERT(DATE,FECHA_INAUGURACION,103)FECHA_INAUGURACION ,LATITUD ,LONGITUD ,CONVERT(DATE,FECHA_DE_CREACION,103)FECHA_DE_CREACION ,UNIFIED_LOCATION_ID ,ERP_BUSINESS_UNIT ,ERP_SUBSIDIARY ,BRAND ,ESTADO_UNIDAD ,TIPO ,INVENTORY_ORGANIZATION ,LOCATION ,ID_UNIDAD_SMARTSYSTEM ,FLAG_TUNQUI ,REGION_UNIDAD ,LIDER_REGIONAL_UNIDAD ,NRO_DOCUMENTO_REGIONAL FROM PROCESOS_SMARTFIT.SMARTFIT.UNIDADES_SMARTFIT_PERU WHERE ESTADO_UNIDAD = 'ACTIVO' AND TIPO = 'Filial' AND CODIGO NOT IN ('LIMADM1','LIMADM2','LIMADM3','LIMADM5','SMFERP1','LIMCOR1','LIMCOR2','LIMCOR3','CALBEL2') AND DEPARTAMENTO = '"+str(geografico)+"' ")
-            for row in cursor.fetchall():
-                content = {
-                        'ID_UNIDAD': row[0],
-                            'CODIGO': row[1],
-                            'UNIDAD': row[2],
-                            'RUC': row[3],
-                            'COMPANIA': row[4],
-                            'SERIE_BOLETAS': row[5],
-                            'SERIE_FACTURAS': row[6],
-                            'COMERCIO_VISA_INGENICO': row[7],
-                            'COMERCIO_MC_INGENICO': row[8],
-                            'ESTADO': row[9],
-                            'CODIGO_TCI': row[10],
-                            'CODIGO_ESTABLECIMIENTO_SUNAT': row[11],
-                            'DIRECCION': row[12],
-                            'DISTRITO': row[13],
-                            'PROVINCIA': row[14],
-                            'DEPARTAMENTO': row[15],
-                            'UBIGEO_UNIDAD': row[16],
-                            'AFORO': row[17],
-                            'FECHA_INAUGURACION': row[18],
-                            'LATITUD': row[19],
-                            'LONGITUD': row[20],
-                            'FECHA_DE_CREACION': row[21],
-                            'UNIFIED_LOCATION_ID': row[22],
-                            'ERP_BUSINESS_UNIT': row[23],
-                            'ERP_SUBSIDIARY': row[24],
-                            'BRAND': row[25],
-                            'ESTADO_UNIDAD': row[26],
-                            'TIPO': row[27],
-                            'INVENTORY_ORGANIZATION': row[28],
-                            'LOCATION': row[29],
-                            'ID_UNIDAD_SMARTSYSTEM': row[30],
-                            'FLAG_TUNQUI': row[31],
-                            'REGION_UNIDAD': row[32],
-                            'LIDER_REGIONAL_UNIDAD': row[33],
-                            'NRO_DOCUMENTO_REGIONAL': row[34]}
-                cars.append(content)
-            return jsonify(cars)
-        except Exception as e:
-            print(e)
-
-#ws_relatorio
-@app.route('/relatorio/<fecha_inicio>/<fecha_fin>/<geografico>')
-def relatorio(fecha_inicio,fecha_fin,geografico):
-        try:
-            cars = []
-            cursor = conn.cursor()
-            cursor.execute(" SELECT ID_RELATORIO ,REFERENCIA ,MES ,CONVERT(DATE,FECHA,103)FECHA ,DIA ,UNIDAD ,VALOR_PAGO ,STATUS ,TIPO_TARJETA ,TIPO_COBRANZA ,TENTATIVA_DE_COBRANZA ,TENTATIVA_DE_COBRANZA_TOTAL ,CODIGO_IMPORTACION ,CODIGO_PAGAMENTO ,CONVERT(DATE,FECHA_VENCIMIENTO_RELATORIO,103)FECHA_VENCIMIENTO_RELATORIO ,TIPO_COBRANZA_2 ,CODIGO_RESPUESTA ,DESCRIPCION_RESPUESTA ,COD_ALUMNO ,CONVERT(DATE,FECHA_IMPORTACION,103)FECHA_IMPORTACION ,ID_FIN ,CODIGO_CONTRATO ,NUMERO_DE_REFERENCIA_RELATORIO ,PRODUCTO_RELATORIO ,CONVERT(DATE,FECHA_DE_CREACION,103)FECHA_DE_CREACION FROM VOXIVA.DWH.MAESTRO_RELATORIO_FIN  WHERE CONVERT(DATE,FECHA,103) BETWEEN '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' and DEPARTAMENTO = '"+str(geografico)+"' ")
-            for row in cursor.fetchall():
-                content = {
-                        'ID_RELATORIO': row[0],
-                            'REFERENCIA': row[1],
-                            'MES': row[2],
-                            'FECHA': row[3],
-                            'DIA': row[4],
-                            'UNIDAD': row[5],
-                            'VALOR_PAGO': row[6],
-                            'STATUS': row[7],
-                            'TIPO_TARJETA': row[8],
-                            'TIPO_COBRANZA': row[9],
-                            'TENTATIVA_DE_COBRANZA': row[10],
-                            'TENTATIVA_DE_COBRANZA_TOTAL': row[11],
-                            'CODIGO_IMPORTACION': row[12],
-                            'CODIGO_PAGAMENTO': row[13],
-                            'FECHA_VENCIMIENTO_RELATORIO': row[14],
-                            'TIPO_COBRANZA_2': row[15],
-                            'CODIGO_RESPUESTA': row[16],
-                            'DESCRIPCION_RESPUESTA': row[17],
-                            'COD_ALUMNO': row[18],
-                            'FECHA_IMPORTACION': row[19],
-                            'ID_FIN': row[20],
-                            'CODIGO_CONTRATO': row[21],
-                            'NUMERO_DE_REFERENCIA_RELATORIO': row[22],
-                            'PRODUCTO_RELATORIO': row[23],
-                            'FECHA_DE_CREACION': row[24]}
-                cars.append(content)
-            return jsonify(cars)
-        except Exception as e:
-            print(e)
-
-#ws_promociones
 @app.route('/promociones')
 def promociones():
     try:
@@ -701,47 +325,6 @@ def promociones():
         print(e)
     finally:
              cursor.close()
-#ws_ingenico
-@app.route('/ingenico/<fecha_inicio>/<fecha_fin>/<geografico>')
-def ingenico(fecha_inicio,fecha_fin,geografico):
-        try:
-            cars = []
-            cursor = conn.cursor()
-            cursor.execute(" SELECT COMERCIO_ORDEN_ID ,CONVERT(DATE,FECHA,103)FECHA ,UNIDAD ,VALOR_PAGO ,ESTADO ,TIPO_COBRANZA ,TENTATIVA_DE_COBRANZA_TOTAL ,CODIGO_PAGAMENTO ,COD_ALUMNO ,MODO_INGRESO ,TIPO ,COMERCIO ,COD_PRODUCTO ,PAN ,COD_ACCION ,MOTIVO_NEGACION ,RESP_COD_MOP ,RESP_MOP ,RESP_COD_PSP ,RESP_PSP ,RESP_EXT_PSP ,BIN ,PLANN ,TRY_CONVERT(DATE,FECHA_VENCIMIENTO,103)FECHA_VENCIMIENTO ,TRY_CONVERT(DATE,FECHA_PUBLICACION,103)FECHA_PUBLICACION ,NRO_COMPROBANTE ,TIPO_COMPROBANTE FROM VOXIVA.DWH.INGENICO WHERE CONVERT(DATE,FECHA,103) BETWEEN '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' and DEPARTAMENTO = '"+str(geografico)+"' ")
-            for row in cursor.fetchall():
-                content = {
-                        'COMERCIO_ORDEN_ID': row[0],
-                            'FECHA': row[1],
-                            'UNIDAD': row[2],
-                            'VALOR_PAGO': row[3],
-                            'ESTADO': row[4],
-                            'TIPO_COBRANZA': row[5],
-                            'TENTATIVA_DE_COBRANZA_TOTAL': row[6],
-                            'CODIGO_PAGAMENTO': row[7],
-                            'COD_ALUMNO': row[8],
-                            'MODO_INGRESO': row[9],
-                            'TIPO': row[10],
-                            'COMERCIO': row[11],
-                            'COD_PRODUCTO': row[12],
-                            'PAN': row[13],
-                            'COD_ACCION': row[14],
-                            'MOTIVO_NEGACION': row[15],
-                            'RESP_COD_MOP': row[16],
-                            'RESP_MOP': row[17],
-                            'RESP_COD_PSP': row[18],
-                            'RESP_PSP': row[19],
-                            'RESP_EXT_PSP': row[20],
-                            'BIN': row[21],
-                            'PLANN': row[22],
-                            'FECHA_VENCIMIENTO': row[23],
-                            'FECHA_PUBLICACION': row[24],
-                            'NRO_COMPROBANTE': row[25],
-                            'TIPO_COMPROBANTE': row[26]}
-                cars.append(content)
-            return jsonify(cars)
-        except Exception as e:
-            print(e)
-
 #ws_inadimplentes_analitico
 @app.route('/inadimplentes_analitico/<fecha_inicio>/<fecha_fin>')
 def inadimplentes_analitico(fecha_inicio,fecha_fin):
@@ -814,26 +397,6 @@ def cancelamientos(fecha_inicio,fecha_fin):
         print(e)
     finally:
              cursor.close()
-
-#ws_bin
-@app.route('/wsbin/<bin>')
-def wsbin(bin):
-        try:
-            cars = []
-            cursor = conn.cursor()
-            cursor.execute("SELECT TIPO,BIN,CATEGORY,BRAND,ALPHA,CONTRY_NAME FROM VOXIVA.DWH.BIN where BIN = '"+str(bin)+"'  ")
-            for row in cursor.fetchall():
-                content = {
-                        'TIPO': row[0],
-                        'BIN': row[1],
-                        'CATEGORY': row[2],
-                        'BRAND': row[3],
-                        'ALPHA': row[4],
-                        'CONTRY_NAME': row[5]}
-                cars.append(content)
-            return jsonify(cars)
-        except Exception as e:
-            print(e)
 
 #ws_alumnoshistoricos
 @app.route('/alumnoshistoricos/<plan>/<fecha_inicio>/<fecha_fin>')
@@ -963,10 +526,6 @@ def accesos(plan,fecha_inicio,fecha_fin):
         print(e)
     finally:
              cursor.close()
-
-#AQUI TERMINA API REST DE VOXIVA
-#API SERVICIOS
-#Api topdesk_odata_backlog
 @app.route('/odatabacklog/<fecha_inicio>/<fecha_fin>')
 def odatabacklog(fecha_inicio,fecha_fin):
     try:
@@ -1242,37 +801,6 @@ def dashboard_latam(fecha_inicio,fecha_fin):
         print(e)
     finally:
              cursor.close()
-@app.route('/pagos_procesados/<fecha_inicio>/<fecha_fin>')
-def pagos_procesados(fecha_inicio,fecha_fin):
-    try:
-        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-        cursor.execute("WITH payments_services AS (SELECT date_format(p.payed_at, '%Y-%m-%d') payed_at, p.payable_type, p.payable_id, p.plan_id, p.location_id, pm.kind AS payment_method_kind, p.state AS payment_state, st.name AS status_name, pc.name AS payment_company_name, p.id AS payment_id, w.person_id AS person_id, p.amount_paid AS amount_paid, p.load_datetime, p.authorization_number , p.contract_number , p.nsu FROM prod_lake_ss_refined.payments p JOIN prod_lake_ss_refined.wallets w ON w.id = p.wallet_id JOIN prod_lake_ss_refined.payment_companies pc ON pc.id = w.payment_company_id JOIN prod_lake_ss_refined.payment_methods pm ON pm.id = pc.payment_method_id LEFT JOIN prod_lake_ss_refined.payment_statuses st ON st.id = p.payment_status_id WHERE p.state = 'payed' AND p.amount_paid > 0 AND p.payable_type = 'Service' AND year(p.payed_at) = year(CURRENT_DATE) AND p.location_id in (SELECT l.id FROM prod_lake_modeled_refined.dim_locations l WHERE l.country = 'Peru') ), services AS (SELECT s.id AS service_id, s.description AS service_description, p.id AS product_id, p.name AS product_name, p.description AS product_description, p.kind AS product_kind FROM prod_lake_ss_refined.services s JOIN prod_lake_ss_refined.products p ON p.id = s.product_id), payments_membership AS (SELECT date_format(p.payed_at, '%Y-%m-%d') payed_at, p.payable_type, p.payable_id, p.plan_id, p.location_id, pm.kind AS payment_method_kind, p.state AS payment_state, st.name AS status_name, pc.name AS payment_company_name, p.id AS payment_id, w.person_id AS person_id, p.amount_paid AS amount_paid, 'Membresía ' AS product_description, p.load_datetime, p.authorization_number, p.contract_number, p.nsu FROM prod_lake_ss_refined.payments p JOIN prod_lake_ss_refined.wallets w ON w.id = p.wallet_id JOIN prod_lake_ss_refined.payment_companies pc ON pc.id = w.payment_company_id JOIN prod_lake_ss_refined.payment_methods pm ON pm.id = pc.payment_method_id LEFT JOIN prod_lake_ss_refined.payment_statuses st ON st.id = p.payment_status_id WHERE p.state = 'payed' AND p.amount_paid > 0 AND p.payable_type = 'Membership' AND year(p.payed_at) = year(CURRENT_DATE) AND p.location_id in (SELECT l.id FROM prod_lake_modeled_refined.dim_locations l WHERE l.country = 'Peru') ), payments_union AS (SELECT CAST(date_format(date_parse(cast(payments_services.payed_at AS varchar(10)), '%Y-%m-%d'), '%Y-%m-%d') AS DATE) payed_at, payments_services.payable_type, payments_services.payable_id, payments_services.plan_id, payments_services.location_id, payments_services.payment_method_kind, payments_services.payment_state, payments_services.status_name, payments_services.payment_company_name, payments_services.payment_id, payments_services.person_id, payments_services.amount_paid, services.product_description, payments_services.load_datetime, payments_services.authorization_number, payments_services.contract_number, payments_services.nsu FROM payments_services INNER JOIN services ON services.service_id = payable_id UNION ALL SELECT date(payments_membership.payed_at), payments_membership.payable_type, payments_membership.payable_id, payments_membership.plan_id, payments_membership.location_id, payments_membership.payment_method_kind, payments_membership.payment_state, payments_membership.status_name, payments_membership.payment_company_name, payments_membership.payment_id, payments_membership.person_id, payments_membership.amount_paid, payments_membership.product_description, payments_membership.load_datetime, payments_membership.authorization_number, payments_membership.contract_number, payments_membership.nsu FROM payments_membership), plans AS (SELECT id AS plan_id, name AS plan_name FROM prod_lake_modeled_refined.dim_plans), units_countries AS (SELECT id AS location_id, country, currency, acronym, name AS location_name FROM prod_lake_modeled_refined.dim_locations), payments_complete AS (SELECT CAST(date_format(date_parse(cast(payed_at AS varchar(10)), '%Y-%m-%d'), '%Y-%m-%d') AS DATE) AS fecha_pago, payment_id AS front_id, acronym AS sigla_unidad, location_name AS nombre_ubicacion, person_id AS matricula_usuario, amount_paid AS cantidad_pago, payable_type AS tipo_pago, plan_name AS PLAN, payment_method_kind AS metodo_pago, CASE WHEN payable_type = 'Service' THEN product_description ELSE concat(product_description, plan_name) END AS descripcion_mensualidad, payment_company_name AS financiero, authorization_number as authorization_number, contract_number as contract_number, nsu FROM payments_union INNER JOIN plans ON plans.plan_id = payments_union.plan_id INNER JOIN units_countries ON units_countries.location_id = payments_union.location_id) SELECT * FROM payments_complete WHERE date_format(fecha_pago, '%Y-%m-%d') BETWEEN '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"'")
-        resultado = []
-        for row in cursor:
-            content = {
-             'fecha_pago':format_fecha(row[0]),
-            'front_id':row[1],
-            'sigla_unidad':row[2],
-            'nombre_ubicacion':row[3],
-            'matricula_usuario':row[4],
-            'cantidad_pago':row[5],
-            'tipo_pago':row[6],
-            'PLAN':row[7],
-            'metodo_pago':row[8],
-            'descripcion_mensualidad':row[9],
-            'financiero':row[10],
-            'authorization_number':row[11],
-            'contract_number':row[12],
-            'nsu':row[13]}
-            resultado.append(content)
-        return jsonify(resultado)
-
-    except Exception as e:
-        print(e)
-    finally:
-             cursor.close()
-def format_fecha(fecha):
-    return fecha.strftime("%Y-%m-%d")
 
 @app.route('/oracle_sovos/<fecha_inicio>/<fecha_fin>', methods=["POST", "GET"])
 def oracle_sovos(fecha_inicio,fecha_fin):
@@ -1318,33 +846,6 @@ def oracle_sovos(fecha_inicio,fecha_fin):
         except Exception as e:
             print(e)
 
-@app.route('/invoice_ss_latam/<fecha_inicio>/<fecha_fin>')
-def invoice_ss_latam(fecha_inicio,fecha_fin):
-    try:
-        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-        cursor.execute("select id_payment,status_pagamento,date_format(payed_at , '%Y-%m-%d') payed_at ,amount_paid ,CASE WHEN forma_pagamento is null THEN 'Forma de Pago NO Identificada' ELSE forma_pagamento end as forma_pagamento ,country ,acronym,CASE WHEN minifactu_id is null THEN 0 ELSE minifactu_id end minifactu_id , CASE WHEN error is null THEN 'Transacción Sin Errores' ELSE error end error from prod_lake_modeled_refined.minifactu_otc where date_format(payed_at, '%Y-%m-%d') BETWEEN '"+str(fecha_inicio)+"' and '"+str(fecha_fin)+"' and country  ='Peru'")
-        records = cursor.fetchall()
-        for row in records:
-            id_payment = str(row[0])
-            status_pagamento = str(row[1])
-            payed_at = str(row[2])
-            amount_paid = str(row[3])
-            forma_pagamento = str(row[4])
-            country = str(row[5])
-            acronym = str(row[6])
-            minifactu_id = str(row[7])
-            error = str(row[8])
-            cursor = sqldatawarehouse.cursor()
-            query_sql_insert='insert into TUNQUI_LATAM.ATHENA.PAGOS_PROCESADOS_SMARTSYSTEM_LATAM  (id_payment,STATUS_PAGAMENTO,PAYET_AT,AMOUNT_PAID,FORMA_PAGAMENTO,COUNTRY,ACRONYM,MINIFACTU_ID,ERROR) ' \
-              " values("''+id_payment+''","''+"'"+str(status_pagamento)+"'"+''","''+"'"+str(payed_at)+"'"+''","''+amount_paid+''","''+"'"+str(forma_pagamento)+"'"+''","''+"'"+str(country)+"'"+''","''+"'"+str(acronym)+"'"+''","''+minifactu_id+''","''+"'"+str(error)+"'"+''") "
-            cursor.execute(query_sql_insert)
-            sqldatawarehouse.commit()
-        return jsonify('Sincronización con el ambiente Productivo de SmartSystem Finalizo con éxito!!!')
-
-    except Exception as e:
-        print(e)
-    finally:
-        cursor.close()
 @app.route('/auditoria_data_lake/')
 def auditoria_data_lake():
     try:
@@ -1361,70 +862,14 @@ def auditoria_data_lake():
         print(e)
     finally:
         cursor.close()
-@app.route('/monitoreo_latam/<fecha_inicio>/<fecha_fin>')
-def monitoreo_latam(fecha_inicio,fecha_fin):
-    try:
-        db_pg = psycopg2.connect(
-            host="db-2.ckioqeuxcht7.us-east-2.rds.amazonaws.com",
-            database="postgres",
-            user="smartfit",
-            password="Pagamento2023*",
-            port=5432
-        )
-
-        cursor = con189.cursor()
-        cursor.execute("SELECT ID_PAYMENT,STATUS_PAGAMENTO,PAYET_AT,AMOUNT_PAID,FORMA_PAGAMENTO,ACRONYM,MINIFACTU_ID,ERROR,STATUS_ERP_ORACLE_CLOUD, ISNULL(FECHA_INTEGRACION,'')as FECHA_INTEGRACION,NRO_AVISO_DEBITO,isnull(FECHA_INTEGRACION_AD,''),ESTADO_AD,COUNTRY,isnull(IMPORTE_INVOICE_AR,'') FROM TUNQUI_LATAM.ATHENA.PAGOS_PROCESADOS_SMARTSYSTEM_LATAM WHERE PAYET_AT between '"+fecha_inicio+"' and '"+fecha_fin+"'")
-        resultado = []
-        for row in cursor:
-            content = {
-                'ID_PAYMENT':row[0],
-                'STATUS_PAGAMENTO':row[1],
-                'PAYET_AT':row[2],
-                'AMOUNT_PAID':row[3],
-                'FORMA_PAGAMENTO':row[4],
-                'ACRONYM':row[5],
-                'MINIFACTU_ID':row[6],
-                'ERROR':row[7],
-                'STATUS_ERP_ORACLE_CLOUD':row[8],
-                'FECHA_INTEGRACION':row[9],
-                'NRO_AVISO_DEBITO':row[10],
-                'FECHA_INTEGRACION_AD' : row[11],
-                'ESTADO_AD' : row[12],
-                'COUNTRY' : row[13],
-                'IMPORTE_INVOICE_AR' : row[14]
-            }
-            #CONECTAMOS A LA DB RDS POSTGRESSQL AWS
-            con_pg = db_pg.cursor()
-            sql = f"INSERT INTO public.monitoreo_latam(ID_PAYMENT,STATUS_PAGAMENTO,PAYET_AT,AMOUNT_PAID,FORMA_PAGAMENTO,ACRONYM,MINIFACTU_ID,ERROR,STATUS_ERP_ORACLE_CLOUD,FECHA_INTEGRACION,NRO_AVISO_DEBITO,FECHA_INTEGRACION_AD,ESTADO_AD,COUNTRY,IMPORTE_INVOICE_AR) values('{row[0]}','{row[1]}' , '{row[2]}' ,'{row[3]}','{row[4]}','{row[5]}','{row[6]}','{row[7]}','{row[8]}','{row[9]}','{row[10]}','{row[11]}','{row[12]}','{row[13]}','{row[14]}')"
-
-            con_pg.execute(sql)
-            db_pg.commit()
-
-            resultado.append(content)
-        obj_response ={
-            'Message' : f'Se cargaron {len(resultado)} datos exitosamente'
-        }
-        return jsonify(obj_response),200
-
-    except Exception as e:
-        print(e)
-        obj_response = {
-            'status_code' : 500,
-            'message' : 'Error en la ejecucion del API',
-            'error' : e
-        }
-        return jsonify(obj_response),500
-    finally:
-        cursor.close()
-
-@app.route('/posgresql/<fecha_inicio>/<fecha_fin>')
-def posgresql(fecha_inicio,fecha_fin):
+@app.route('/pagos_procesados_aws/<fecha_inicio>/<fecha_fin>')
+def pagos_procesados_aws(fecha_inicio,fecha_fin):
     try:
         cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY",
                          aws_secret_access_key="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",
                          s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1",
                          work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-        cursor.execute("select id_payment,status_pagamento,date_format(payed_at , '%Y-%m-%d') payed_at ,amount_paid ,CASE WHEN forma_pagamento is null THEN 'Forma de Pago NO Identificada' ELSE forma_pagamento end as forma_pagamento ,country ,acronym,CASE WHEN minifactu_id is null THEN 0 ELSE minifactu_id end minifactu_id , CASE WHEN error is null THEN 'Transacción Sin Errores' ELSE error end error from prod_lake_modeled_refined.minifactu_otc where date_format(payed_at, '%Y-%m-%d') BETWEEN '" + str(fecha_inicio) + "' and '" + str(fecha_fin) + "' and country  ='Peru' limit 5")
+        cursor.execute("select id_payment,status_pagamento,date_format(payed_at , '%Y-%m-%d') payed_at ,amount_paid ,CASE WHEN forma_pagamento is null THEN 'Forma de Pago NO Identificada' ELSE forma_pagamento end as forma_pagamento ,country ,acronym,CASE WHEN minifactu_id is null THEN 0 ELSE minifactu_id end minifactu_id , CASE WHEN error is null THEN 'Transacción Sin Errores' ELSE error end error from prod_lake_modeled_refined.minifactu_otc where date_format(payed_at, '%Y-%m-%d') BETWEEN '" + str(fecha_inicio) + "' and '" + str(fecha_fin) + "' and country  ='Peru' limit 20")
         records = cursor.fetchall()
         for row in records:
             id_payment = str(row[0])
@@ -1436,13 +881,13 @@ def posgresql(fecha_inicio,fecha_fin):
             acronym = str(row[6])
             minifactu_id = str(row[7])
             error = str(row[8])
-            connposgresql.autocommit = True
+            print('Registrando pagos en la en AWS - PostgreSQL')
             cur = connposgresql.cursor()
             query_sql_insert = 'insert into "ATHENA"."PAGOS_PROCESADOS_SMARTSYSTEM_LATAM"  (ID_PAYMENT,STATUS_PAGAMENTO,PAYET_AT,AMOUNT_PAID,FORMA_PAGAMENTO,COUNTRY,ACRONYM,MINIFACTU_ID,ERROR) ' \
                               " values("'' + id_payment + ''","'' + "'" + str( status_pagamento) + "'" + ''","'' + "'" + str(payed_at) + "'" + ''","'' + amount_paid + ''","'' + "'" + str(forma_pagamento) + "'" + ''","'' + "'" + str(country) + "'" + ''","'' + "'" + str( acronym) + "'" + ''","'' + minifactu_id + ''","'' + "'" + str(error) + "'" + ''") "
             cur.execute(query_sql_insert)
-            connposgresql.commit()
-            return jsonify(id_payment)
+        connposgresql.commit()
+        return 'Registro exitoso'
     except Exception as e:
         print(e)
     finally:
