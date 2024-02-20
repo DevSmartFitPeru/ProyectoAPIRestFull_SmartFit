@@ -874,7 +874,6 @@ def pagos_procesados_aws(fecha_inicio,fecha_fin):
             acronym = str(row[6])
             minifactu_id = str(row[7])
             error = str(row[8])
-            print('Registrando pagos aprobados AWS - RDS PostgreSQL')
             cur = connposgresql.cursor()
             query_sql_insert = 'insert into "ATHENA"."PAGOS_PROCESADOS_SMARTSYSTEM_LATAM"  (ID_PAYMENT,STATUS_PAGAMENTO,PAYET_AT,AMOUNT_PAID,FORMA_PAGAMENTO,COUNTRY,ACRONYM,MINIFACTU_ID,ERROR) ' \
                               " values("'' + id_payment + ''","'' + "'" + str(status_pagamento) + "'" + ''","'' + "'" + str(payed_at) + "'" + ''","'' + amount_paid + ''","'' + "'" + str(forma_pagamento) + "'" + ''","'' + "'" + str(country) + "'" + ''","'' + "'" + str( acronym) + "'" + ''","'' + minifactu_id + ''","'' + "'" + str(error) + "'" + ''") "
