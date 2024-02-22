@@ -885,6 +885,51 @@ def pagos_procesados_aws(fecha_inicio,fecha_fin):
     finally:
         cursor.close()
 
+
+@app.route('/payment_ar/<fecha_inicio>/<fecha_fin>')
+def \
+        payment_ar__aws(fecha_inicio,fecha_fin):
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY",
+                         aws_secret_access_key="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",
+                         s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1",
+                         work_group="peru", schema_name="prod_lake_ss_refined").cursor()
+        sql = "SELECT date(p.payed_at) AS payed_at, p.id front_id, fin.fin_id, p.payable_type, plan.name, unidad.acronym, unidad.name unidad_name, p.contract_number nro_afiliacion, wa.card_number, wa.responsible_cpf, wa.card_name  responsable_financiero, p.nsu, pm.kind AS payment_method_kind, p.state AS payment_state, st.name AS status_name, pc.name AS payment_company_name, w.person_id AS cod_alumno, p.amount_paid AS amount_paid, p.invoice_code FROM prod_lake_ss_refined.payments p JOIN prod_lake_ss_refined.wallets w ON w.id = p.wallet_id JOIN prod_lake_ss_refined.payment_companies pc ON pc.id = w.payment_company_id JOIN prod_lake_ss_refined.payment_methods pm ON pm.id = pc.payment_method_id LEFT JOIN prod_lake_ss_refined.payment_statuses st ON st.id = p.payment_status_id INNER JOIN prod_lake_ss_refined.plans plan ON plan .id  = p.plan_id inner join prod_lake_ss_refined.wallets wa on p.wallet_id = wa.id inner join prod_lake_ss_refined.locations unidad on p.location_id = unidad .id inner join prod_lake_ss_refined.imports_payments fin on p.id = fin.payment_id WHERE p.state in ('payed','rejected','scheduled') and p.amount_paid > 0 AND p.payable_type in ('Membership','Service') AND p.location_id in (SELECT l.id FROM prod_lake_modeled_refined.dim_locations l WHERE l.country = 'Peru') and p.payed_at between cast('" + str(fecha_inicio) + " 00:00:00' as timestamp) and cast('" + str(fecha_fin) + " 00:00:00' as timestamp)"
+        print(sql)
+        cursor.execute(sql)
+        records = cursor.fetchall()
+        for row in records:
+            payed_at = row[0]
+            front_id = row[1]
+            fin_id = row[2]
+            payable_type = str(row[3])
+            plan_name = str(row[4])
+            unidad_acronym = str(row[5])
+            unidad_name = str(row[6])
+            nro_afiliacion = str(row[7])
+            card_number = str(row[8])
+            responsible_cpf = str(row[9])
+            responsable_financiero = str(row[10])
+            nsu = str(row[11])
+            payment_method_kind = str(row[12])
+            payment_state = str(row[13])
+            status_name = str(row[14])
+            payment_company_name = str(row[15])
+            cod_alumno = row[16]
+            amount_paid = str(row[17])
+            invoice_code = str(row[18])
+
+            cur = connposgresql.cursor()
+            query_sql_insert = 'insert into "PAYMENT"."payment"(payed_at, front_id, fin_id, payable_type, plan_name, unidad_acronym, unidad_name, nro_afiliacion, card_number, responsible_cpf, responsable_financiero, nsu, payment_method_kind, payment_state, status_name, payment_company_name, cod_alumno, amount_paid, invoice_code)' \
+                              " values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s) "
+            cur.execute(query_sql_insert,(payed_at,front_id,fin_id,payable_type,plan_name,unidad_acronym,unidad_name,nro_afiliacion,card_number,responsible_cpf,responsable_financiero,nsu,payment_method_kind,payment_state,status_name,payment_company_name,cod_alumno,amount_paid,invoice_code))
+        connposgresql.commit()
+        return 'Registro exitosoOO'
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
+
 server_name = app.config['SERVER_NAME']
 if server_name and ':' in server_name:
     host, port = server_name.split(":")
