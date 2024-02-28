@@ -888,8 +888,7 @@ def pagos_procesados_aws(fecha_inicio,fecha_fin):
 
 
 @app.route('/payment_ar/<fecha_inicio>/<fecha_fin>')
-def \
-        payment_ar__aws(fecha_inicio,fecha_fin):
+def payment_ar__aws(fecha_inicio,fecha_fin):
     try:
         cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY",
                          aws_secret_access_key="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",
