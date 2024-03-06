@@ -894,30 +894,27 @@ def payment_ar(fecha_inicio,fecha_fin):
                          aws_secret_access_key="zUe2jrbS7hRx9Ph6nYL+Jvr9wLWgVK97eno9BTrh",
                          s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1",
                          work_group="peru", schema_name="prod_lake_ss_refined").cursor()
-        sql = "SELECT date(p.payed_at) AS payed_at, p.id front_id, fin.fin_id, p.payable_type, plan.name, unidad.acronym, unidad.name unidad_name, p.contract_number nro_afiliacion, wa.card_number, wa.responsible_cpf, wa.card_name  responsable_financiero, p.authorization_number  nsu, pm.kind AS payment_method_kind, p.state AS payment_state, st.name AS status_name, pc.name AS payment_company_name, w.person_id AS cod_alumno, p.amount_paid AS amount_paid, p.invoice_code FROM prod_lake_ss_refined.payments p JOIN prod_lake_ss_refined.wallets w ON w.id = p.wallet_id JOIN prod_lake_ss_refined.payment_companies pc ON pc.id = w.payment_company_id JOIN prod_lake_ss_refined.payment_methods pm ON pm.id = pc.payment_method_id LEFT JOIN prod_lake_ss_refined.payment_statuses st ON st.id = p.payment_status_id INNER JOIN prod_lake_ss_refined.plans plan ON plan .id  = p.plan_id inner join prod_lake_ss_refined.wallets wa on p.wallet_id = wa.id inner join prod_lake_ss_refined.locations unidad on p.location_id = unidad .id inner join prod_lake_ss_refined.imports_payments fin on p.id = fin.payment_id WHERE p.state in ('payed','rejected','scheduled') and p.amount_paid > 0 AND p.payable_type in ('Membership','Service') AND p.location_id in (SELECT l.id FROM prod_lake_modeled_refined.dim_locations l WHERE l.country = 'Peru') and p.payed_at between cast('" + str(fecha_inicio) + " 00:00:00' as timestamp) and cast('" + str(fecha_fin) + " 00:00:00' as timestamp)"
+        sql = "WITH payments_services AS (select DISTINCT p.payable_id, date(p.payed_at) AS payed_at, p.payable_type, p.plan_id, p.location_id, pm.kind AS payment_method_kind, p.state AS payment_state, st.name AS status_name, pc.name AS payment_company_name, p.id AS payment_id, w.person_id AS person_id, p.amount_paid AS amount_paid, p.authorization_number, w.card_number, otc.minifactu_id , p.invoice_code, payment.fin_id, p.load_datetime FROM prod_lake_ss_refined.payments p JOIN prod_lake_ss_refined.wallets w ON w.id = p.wallet_id JOIN prod_lake_ss_refined.payment_companies pc ON pc.id = w.payment_company_id JOIN prod_lake_ss_refined.payment_methods pm ON pm.id = pc.payment_method_id LEFT JOIN prod_lake_ss_refined.payment_statuses st ON st.id = p.payment_status_id left join prod_lake_modeled_refined.minifactu_otc otc on p.id = otc.id_payment LEFT join prod_lake_ss_refined.imports_payments payment on p.id = payment.payment_id WHERE p.state = 'payed' AND p.amount_paid > 0 AND p.payable_type = 'Service' AND year(p.payed_at) = year(CURRENT_DATE) AND p.location_id in (SELECT l.id FROM prod_lake_modeled_refined.dim_locations l WHERE l.country = 'Peru') ), services AS (SELECT s.id AS service_id, s.description AS service_description, p.id AS product_id, p.name AS product_name, p.description AS product_description, p.kind AS product_kind FROM prod_lake_ss_refined.services s JOIN prod_lake_ss_refined.products p ON p.id = s.product_id), payments_membership AS (SELECT distinct p.payable_id,date(p.payed_at) AS payed_at, p.payable_type, p.plan_id, p.location_id, pm.kind AS payment_method_kind, p.state AS payment_state, st.name AS status_name, pc.name AS payment_company_name, p.id AS payment_id, w.person_id AS person_id, p.amount_paid AS amount_paid, 'Membresía ' AS product_description, p.authorization_number, w.card_number, otc.minifactu_id , p.invoice_code , payment.fin_id, p.load_datetime FROM prod_lake_ss_refined.payments p JOIN prod_lake_ss_refined.wallets w ON w.id = p.wallet_id JOIN prod_lake_ss_refined.payment_companies pc ON pc.id = w.payment_company_id JOIN prod_lake_ss_refined.payment_methods pm ON pm.id = pc.payment_method_id LEFT JOIN prod_lake_ss_refined.payment_statuses st ON st.id = p.payment_status_id left join prod_lake_modeled_refined.minifactu_otc otc on p.id = otc.id_payment LEFT join prod_lake_ss_refined.imports_payments payment on p.id = payment.payment_id WHERE p.state = 'payed' AND p.amount_paid > 0 AND p.payable_type = 'Membership' AND year(p.payed_at) = year(CURRENT_DATE) AND p.location_id in (SELECT l.id FROM prod_lake_modeled_refined.dim_locations l WHERE l.country = 'Peru') ), payments_union AS (SELECT distinct payments_services.payable_id, payments_services.payed_at, payments_services.payable_type, payments_services.plan_id, payments_services.location_id, payments_services.payment_method_kind, payments_services.payment_state, payments_services.status_name, payments_services.payment_company_name, payments_services.payment_id, payments_services.person_id, payments_services.amount_paid, services.product_description, payments_services.authorization_number, payments_services.card_number, payments_services.minifactu_id, payments_services.invoice_code, payments_services.fin_id, payments_services.load_datetime FROM payments_services INNER JOIN services ON services.service_id = payable_id UNION ALL SELECT distinct payments_membership.payable_id, payments_membership.payed_at, payments_membership.payable_type, payments_membership.plan_id, payments_membership.location_id, payments_membership.payment_method_kind, payments_membership.payment_state, payments_membership.status_name, payments_membership.payment_company_name, payments_membership.payment_id, payments_membership.person_id, payments_membership.amount_paid, payments_membership.product_description, payments_membership.authorization_number, payments_membership.card_number, payments_membership.minifactu_id, payments_membership.invoice_code, payments_membership.fin_id, payments_membership.load_datetime FROM payments_membership), plans AS (SELECT id AS plan_id, name AS plan_name FROM prod_lake_modeled_refined.dim_plans), units_countries AS (SELECT id AS location_id, country, currency, acronym, name AS location_name FROM prod_lake_modeled_refined.dim_locations), payments_complete AS (select DISTINCT payment_id AS front_id, payed_at AS fecha_pago, acronym AS sigla_unidad, location_name AS nombre_ubicacion, person_id AS matricula_usuario, amount_paid AS importe, payable_type AS tipo_pago, plan_name AS Plan, payment_method_kind AS metodo_pago, CASE WHEN payable_type = 'Service' THEN product_description ELSE concat(product_description, plan_name) END AS descripcion_mensualidad, payment_company_name AS financiero, authorization_number, card_number, minifactu_id, invoice_code, fin_id FROM payments_union INNER JOIN plans ON plans.plan_id = payments_union.plan_id INNER JOIN units_countries ON units_countries.location_id = payments_union.location_id) SELECT * FROM payments_complete where fecha_pago between cast('"+str(fecha_inicio)+" 00:00:00' as timestamp) and cast('"+str(fecha_fin)+" 00:00:00' as timestamp) and front_id=655358632"
 
         cursor.execute(sql)
         records = cursor.fetchall()
         for row in records:
-            payed_at = row[0]
-            front_id = row[1]
-            fin_id = row[2]
-            payable_type = str(row[3])
-            plan_name = str(row[4])
-            unidad_acronym = str(row[5])
-            unidad_name = str(row[6])
-            nro_afiliacion = str(row[7])
-            card_number = str(row[8])
-            responsible_cpf = str(row[9])
-            responsable_financiero = str(row[10])
-            nsu = str(row[11])
-            payment_method_kind = str(row[12])
-            payment_state = str(row[13])
-            status_name = str(row[14])
-            payment_company_name = str(row[15])
-            cod_alumno = row[16]
-            amount_paid = str(row[17])
-            invoice_code = str(row[18])
+            front_id = row[0]
+            fecha_pago = row[1]
+            sigla_unidad = str(row[2])
+            nombre_ubicacion = str(row[3])
+            matricula_usuario = str(row[4])
+            importe = row[5]
+            tipo_pago = str(row[6])
+            Plan = str(row[7])
+            metodo_pago = row[8]
+            descripcion_mensualidad = str(row[9])
+            financiero = str(row[10])
+            authorization_number = row[11]
+            card_number = row[12]
+            minifactu_id = row[13]
+            invoice_code = row[14]
+            fin_id = row[15]
 
             cur = connposgresql.cursor()
             query_sql_insert = 'insert into "PAYMENT"."payment"(payed_at, front_id, fin_id, payable_type, plan_name, unidad_acronym, unidad_name, nro_afiliacion, card_number, responsible_cpf, responsable_financiero, nsu, payment_method_kind, payment_state, status_name, payment_company_name, cod_alumno, amount_paid, invoice_code)' \
