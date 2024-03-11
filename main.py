@@ -231,28 +231,6 @@ def scheduled():
         print(e)
     finally:
              cursor.close()
-
-@app.route('/scheduled_pe')
-def scheduled_pe():
-    try:
-        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-        cursor.execute("select operadora ,brand ,date_format(due_on, '%Y-%m-%d') due_on ,acronym ,count(*) as Total_TX,sum(amount) as Valorizado  from prod_lake_modeled_refined.fin_otc where data_sistema_front  is null and operadora  in ('MCprocesosPERU','peru_interbank','VisanetPERU') and status_front ='scheduled' group by operadora,brand,due_on  ,acronym")
-        resultado = []
-        for row in cursor:
-            content = {
-            'operadora':row[0],
-            'brand':row[1],
-            'due_on':row[2],
-            'acronym':row[3],
-            'Total_TX':row[4],
-            'Valorizado':row[5]}
-            resultado.append(content)
-        return jsonify(resultado)
-
-    except Exception as e:
-        print(e)
-    finally:
-             cursor.close()
 @app.route('/oic/<fecha_inicio>')
 def oic(fecha_inicio):
 
@@ -923,6 +901,68 @@ def payment_ar(fecha_inicio,fecha_fin):
         print(e)
     finally:
         cursor.close()
+
+@app.route('/unidades_peru')
+def unidades_peru():
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY",
+                         aws_secret_access_key="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",
+                         s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1",
+                         work_group="peru", schema_name="prod_lake_ss_refined").cursor()
+        sql = "select acronym ACRONYM,upper(name) NAME_UNIDAD,CASE WHEN acronym ='HUAHUA1' THEN '6' WHEN acronym ='LIMPUL1' THEN '154' WHEN acronym ='CUSCUS1' THEN '31' WHEN acronym ='LIMVMT1' THEN '75' WHEN acronym ='PIUPIU1' THEN '10' WHEN acronym ='LIMATE1' THEN '59' WHEN acronym ='LIMSUR3' THEN '194' WHEN acronym ='LIMSUR1' THEN '202' WHEN acronym ='TRUTRU2' THEN '14' WHEN acronym ='CAJCAJ1' THEN '33' WHEN acronym ='CHICLA2' THEN '3' WHEN acronym ='AQPCAY2' THEN '1' WHEN acronym ='LIMSUR3' THEN '194' WHEN acronym ='LIMLIM2' THEN '114' WHEN acronym ='LIMLIM2' THEN '114' WHEN acronym ='LIMSMP1' THEN '92' WHEN acronym ='LIMCHO4' THEN '5' WHEN acronym ='PUCPUC1' THEN '34' WHEN acronym ='ICAICA1' THEN '122' ELSE '-' end as NUMERACION_REAL_PLAZA, CASE WHEN acronym ='HUAHUA1' THEN 'LE-02' WHEN acronym ='LIMPUL1' THEN 'TA-201' WHEN acronym ='CUSCUS1' THEN 'TI-04' WHEN acronym ='LIMVMT1' THEN 'LC-410' WHEN acronym ='PIUPIU1' THEN 'TI-04' WHEN acronym ='LIMATE1' THEN 'TI-206' WHEN acronym ='LIMSUR3' THEN 'TA-101' WHEN acronym ='LIMSUR1' THEN 'LCE-101' WHEN acronym ='TRUTRU2' THEN 'LC-201' WHEN acronym ='CAJCAJ1' THEN 'TI-01' WHEN acronym ='CHICLA2' THEN 'LC-203' WHEN acronym ='AQPCAY2' THEN 'LC-301' WHEN acronym ='LIMSUR3' THEN 'TA-101' WHEN acronym ='LIMLIM2' THEN 'TA-201' WHEN acronym ='LIMLIM2' THEN 'TA-201' WHEN acronym ='LIMSMP1' THEN 'LCE-201/LCE-301' WHEN acronym ='LIMCHO4' THEN 'TI-202' WHEN acronym ='PUCPUC1' THEN 'TI-201/202' WHEN acronym ='ICAICA1' THEN 'LCE-103' ELSE '-' end AS CODIGO_REAL_PLAZA, CASE WHEN acronym ='LIMCOR1' THEN 'PE010001' WHEN acronym ='CUSCUS1' THEN 'PE010002' WHEN acronym ='LIMMIR1' THEN 'PE010003' WHEN acronym ='LIMMIR2' THEN 'PE010004' WHEN acronym ='LIMVMT1' THEN 'PE010005' WHEN acronym ='LIMMIG1' THEN 'PE010006' WHEN acronym ='AQPCAY1' THEN 'PE010007' WHEN acronym ='LIMSJM1' THEN 'PE010008' WHEN acronym ='LIMMIR3' THEN 'PE010009' WHEN acronym ='LIMMOL1' THEN 'PE010010' WHEN acronym ='LIMIND1' THEN 'PE010011' WHEN acronym ='AQPCOL1' THEN 'PE010012' WHEN acronym ='LIMLIM1' THEN 'PE010013' WHEN acronym ='LIMPUL1' THEN 'PE010014' WHEN acronym ='CALBEL1' THEN 'PE010015' WHEN acronym ='LIMLVC1' THEN 'PE010016' WHEN acronym ='PIUPIU1' THEN 'PE010017' WHEN acronym ='HUAHUA1' THEN 'PE010018' WHEN acronym ='LIMLVC2' THEN 'PE010019' WHEN acronym ='PIUPIU2' THEN 'PE010020' WHEN acronym ='LIMATE1' THEN 'PE010021' WHEN acronym ='LIMMIR4' THEN 'PE010022' WHEN acronym ='LIMCHO2' THEN 'PE010023' WHEN acronym ='LIMSUR1' THEN 'PE010024' WHEN acronym ='LIMCHO4' THEN 'PE010025' WHEN acronym ='PIUPIU3' THEN 'PE010026' WHEN acronym ='PIUCAS1' THEN 'PE010027' WHEN acronym ='CHICLA2' THEN 'PE010028' WHEN acronym ='TRUTRU2' THEN 'PE010029' WHEN acronym ='AQPAQP1' THEN 'PE010030' WHEN acronym ='AQPPAU1' THEN 'PE010031' WHEN acronym ='AQPCAY2' THEN 'PE010032' WHEN acronym ='CAJCAJ1' THEN 'PE010033' WHEN acronym ='LIMSUR3' THEN 'PE010035' WHEN acronym ='LIMADM1' THEN 'PE010036' WHEN acronym ='CAJCAJ2' THEN 'PE010037' WHEN acronym ='ICAICA2' THEN 'PE010038' WHEN acronym ='LIMSMP1' THEN 'PE010039' WHEN acronym ='CHICLA4' THEN 'PE010040' WHEN acronym ='LIMSJL2' THEN 'PE010041' WHEN acronym ='LORIQT1' THEN 'PE010042' WHEN acronym ='LIMLIM2' THEN 'PE010043' WHEN acronym ='LIMCHO1' THEN 'PE010044' WHEN acronym ='LIMMIR5' THEN 'PE010045' WHEN acronym ='LIMBAR1' THEN 'PE010046' WHEN acronym ='CALBEL2' THEN 'PE010047' WHEN acronym ='LIMSUQ1' THEN 'PE010048' WHEN acronym ='LIMANI1' THEN 'PE010049' WHEN acronym ='LIMMGD1' THEN 'PE010050' WHEN acronym ='LIMSBO1' THEN 'PE010051' WHEN acronym ='ICAICA1' THEN 'PE010052' WHEN acronym ='LIMCOM1' THEN 'PE010053' WHEN acronym ='CHICLA1' THEN 'PE010054' WHEN acronym ='LIMCHO3' THEN 'PE010055' WHEN acronym ='LIMIND2' THEN 'PE010056' WHEN acronym ='LIMSUR5' THEN 'PE010057' WHEN acronym ='TRUTRU1' THEN 'PE010058' WHEN acronym ='LIMSUR4' THEN 'PE010059' WHEN acronym ='CALCAL1' THEN 'PE010060' WHEN acronym ='LIMSUR7' THEN 'PE010061' WHEN acronym ='LIMISI2' THEN 'PE010062' WHEN acronym ='CHICLA3' THEN 'PE010063' WHEN acronym ='HUAHUA2' THEN 'PE010064' WHEN acronym ='LIMATE2' THEN 'PE010065' WHEN acronym ='LIMBRE1' THEN 'PE010066' WHEN acronym ='LIMISI1' THEN 'PE010067' WHEN acronym ='LIMLIM3' THEN 'PE010068' WHEN acronym ='LIMLIM4' THEN 'PE010069' WHEN acronym ='LIMMOL2' THEN 'PE010070' WHEN acronym ='LIMSJL1' THEN 'PE010071' WHEN acronym ='LIMSUQ2' THEN 'PE010072' WHEN acronym ='LIMSUR2' THEN 'PE010073' WHEN acronym ='LIMSUR6' THEN 'PE010074' WHEN acronym ='PUCPUC1' THEN 'PE010075' WHEN acronym ='PUCPUC2' THEN 'PE010076' WHEN acronym ='LIMAGU1' THEN 'PE010077' WHEN acronym ='LIMSJM2' THEN 'PE010078' WHEN acronym ='LIMMOL3' THEN 'PE010079' WHEN acronym ='LIMMIG2' THEN 'PE010080' ELSE 'Aun no Apertura' end AS FILIAL,cnpj RUC ,'SMARTFIT PERU S.A.C.' RAZON_SOCIAL,unified_location_id ID_SMARTSYSTEM_OIC,upper(country) COUNTRY from prod_lake_modeled_refined.dim_locations where cnpj ='20600597940'"
+        cursor.execute(sql)
+        records = cursor.fetchall()
+        for row in records:
+            front_id = row[0]
+            fecha_pago = row[1]
+            sigla_unidad = str(row[2])
+            nombre_ubicacion = str(row[3])
+            matricula_usuario = str(row[4])
+            importe = row[5]
+            tipo_pago = str(row[6])
+            Plan = str(row[7])
+            metodo_pago = row[8]
+            descripcion_mensualidad = str(row[9])
+            financiero = str(row[10])
+            authorization_number = row[11]
+            card_number = row[12]
+            minifactu_id = row[13]
+            invoice_code = row[14]
+            cur = connposgresql.cursor()
+            query_sql_insert = 'insert into "PAYMENT"."payment"(front_id, fecha_pago, sigla_unidad, nombre_ubicacion, matricula_usuario, importe, tipo_pago, Plan, metodo_pago, descripcion_mensualidad, financiero, authorization_number, card_number, minifactu_id, invoice_code)' \
+                              " values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s,%s,%s,%s) "
+            cur.execute(query_sql_insert,(front_id, fecha_pago, sigla_unidad, nombre_ubicacion, matricula_usuario, importe, tipo_pago, Plan, metodo_pago, descripcion_mensualidad, financiero, authorization_number, card_number, minifactu_id, invoice_code))
+        connposgresql.commit()
+        return 'Sincronizacion Pagos Procesados Finalizada!'
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
+
+@app.route('/scheduled_pe')
+def scheduled_pe():
+    try:
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+        sql = "select operadora ,brand ,date_format(due_on, '%Y-%m-%d') due_on ,acronym ,count(*) as total_tx,sum(amount) as valorizado  from prod_lake_modeled_refined.fin_otc where data_sistema_front  is null and operadora  in ('MCprocesosPERU','peru_interbank','VisanetPERU') and status_front ='scheduled' group by operadora,brand,due_on  ,acronym"
+        cursor.execute(sql)
+        records = cursor.fetchall()
+        for row in records:
+            operadora = row[0]
+            brand = row[1]
+            due_on = row[2]
+            acronym= row[3]
+            total_tx =row[4]
+            valorizado =row[5]
+            cur = connposgresql.cursor()
+            query_sql_insert = 'insert into "PAYMENT"."marcado_agenda"(operadora ,brand ,due_on ,acronym ,total_tx ,valorizado)' \
+                               " values(%s, %s, %s, %s, %s, %s) "
+            cur.execute(query_sql_insert, (operadora ,brand ,due_on ,acronym ,total_tx ,valorizado))
+        connposgresql.commit()
+        return 'Sincronización Marcados en Agenda...'
+    except Exception as e:
+        print(e)
+    finally:
+             cursor.close()
 
 server_name = app.config['SERVER_NAME']
 if server_name and ':' in server_name:
