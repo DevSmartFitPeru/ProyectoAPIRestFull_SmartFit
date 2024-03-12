@@ -841,7 +841,7 @@ def pagos_procesados_aws(fecha_inicio,fecha_fin):
                          aws_secret_access_key="zUe2jrbS7hRx9Ph6nYL+Jvr9wLWgVK97eno9BTrh",
                          s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1",
                          work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-        print(cursor)
+
         cursor.execute("select id_payment,status_pagamento,date_format(payed_at , '%Y-%m-%d') payed_at ,amount_paid ,CASE WHEN forma_pagamento is null THEN 'Forma de Pago NO Identificada' ELSE forma_pagamento end as forma_pagamento ,country ,acronym,CASE WHEN minifactu_id is null THEN 0 ELSE minifactu_id end minifactu_id , CASE WHEN errors is null THEN 'Sin errores en SmartSystem' ELSE array_join(errors,',') end error from prod_lake_modeled_refined.minifactu_otc where date_format(payed_at, '%Y-%m-%d') BETWEEN '" + str(fecha_inicio) + "' and '" + str(fecha_fin) + "' and country  in('Peru','Colômbia','México','Chile') ")
         records = cursor.fetchall()
         print('insertara')
@@ -854,16 +854,16 @@ def pagos_procesados_aws(fecha_inicio,fecha_fin):
             country = str(row[5])
             acronym = str(row[6])
             minifactu_id = str(row[7])
-            error = str(row[8])
+            error = row[8]
             cur = connposgresql.cursor()
             query_sql_insert = 'insert into "ATHENA"."PAGOS_PROCESADOS_SMARTSYSTEM_LATAM"  (ID_PAYMENT,STATUS_PAGAMENTO,PAYET_AT,AMOUNT_PAID,FORMA_PAGAMENTO,COUNTRY,ACRONYM,MINIFACTU_ID,ERROR) ' \
-                              " values("'' + id_payment + ''","'' + "'" + str(status_pagamento) + "'" + ''","'' + "'" + str(payed_at) + "'" + ''","'' + amount_paid + ''","'' + "'" + str(forma_pagamento) + "'" + ''","'' + "'" + str(country) + "'" + ''","'' + "'" + str(acronym) + "'" + ''","'' + minifactu_id + ''","'' + "'" + str(error) + "'" + ''") "
+                              "values(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
 
-            cur.execute(query_sql_insert)
+            cur.execute(query_sql_insert,(id_payment,status_pagamento,payed_at,amount_paid,forma_pagamento,country,acronym,minifactu_id,error))
         connposgresql.commit()
         return 'Registro exitoso'
     except Exception as e:
-        print(e)
+        print(str(e))
     finally:
         cursor.close()
 
