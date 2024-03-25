@@ -861,7 +861,7 @@ def pagos_procesados_aws(fecha_inicio,fecha_fin):
 
             cur.execute(query_sql_insert,(id_payment,status_pagamento,payed_at,amount_paid,forma_pagamento,country,acronym,minifactu_id,error))
         connposgresql.commit()
-        return 'Registro exitoso'
+        return jsonify({'status': 'success', 'message': 'Registro exitoso'}), 200
     except Exception as e:
         print(str(e))
     finally:
@@ -966,6 +966,40 @@ def scheduled_pe():
         print(e)
     finally:
              cursor.close()
+
+
+@app.route('/interfaz_ingenico/<fecha_inicio>/<fecha_fin>')
+def interfaz_ingenico(fecha_inicio,fecha_fin):
+    try:
+        print("asdasd")
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY",
+                         aws_secret_access_key="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",
+                         s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1",
+                         work_group="peru", schema_name="prod_lake_ss_refined").cursor()
+        sql = "select otc.id_payment,otc.payed_at,otc.minifactu_id,otc.amount_paid,payment.created_at, import.state,import.fin_id,import.brand_name from prod_lake_modeled_refined.minifactu_otc otc inner join prod_lake_ss_refined.payments payment on otc.id_payment = payment.id inner join prod_lake_ss_refined.imports_payments import on payment.id = import.payment_id where country ='Peru' and otc.payed_at between cast('" + str(fecha_inicio) + " 00:00:00' as timestamp) and  cast('" + str(fecha_fin) + " 00:00:00' as timestamp)"
+        cursor.execute(sql)
+        records = cursor.fetchall()
+        for row in records:
+            id_payment = row[0]
+            payed_at = row[1]
+            minifactu_id = row[2]
+            amount_paid = row[3]
+            created_at = row[4]
+            state = str(row[5])
+            fin_id = row[6]
+            brand_name = str(row[7])
+
+            cur = connposgresql.cursor()
+            query_sql_insert = 'insert into "FIN".interfaz_ingenico(id_payment, payed_at, minifactu_id, amount_paid, fecha, state, fin_id, brand_name)' \
+                              " values(%s, %s, %s, %s, %s, %s, %s, %s) "
+            cur.execute(query_sql_insert,(id_payment, payed_at, minifactu_id, amount_paid, created_at, state, fin_id, brand_name))
+        connposgresql.commit()
+        return 'Sincronizacion INTERFAZ_INGENICO Finalizada!'
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
+
 
 server_name = app.config['SERVER_NAME']
 if server_name and ':' in server_name:
