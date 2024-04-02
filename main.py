@@ -861,11 +861,12 @@ def pagos_procesados_aws(fecha_inicio,fecha_fin):
 
             cur.execute(query_sql_insert,(id_payment,status_pagamento,payed_at,amount_paid,forma_pagamento,country,acronym,minifactu_id,error))
         connposgresql.commit()
+        cursor.close()
         return jsonify({'status': 'success', 'message': 'Registro exitoso'}), 200
     except Exception as e:
         print(str(e))
     finally:
-        cursor.close()
+        print('Se ejecuto pagos procesados.')
 
 
 @app.route('/payment_ar/<fecha_inicio>/<fecha_fin>')
