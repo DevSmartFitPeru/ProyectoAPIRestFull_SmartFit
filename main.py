@@ -947,7 +947,7 @@ def unidades_peru():
 def scheduled_pe():
     try:
         cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY", aws_secret_access_key="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", s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1", work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
-        sql = "select operadora ,brand ,date_format(due_on, '%Y-%m-%d') due_on ,acronym ,count(*) as total_tx,sum(amount) as valorizado  from prod_lake_modeled_refined.fin_otc where data_sistema_front  is null and operadora  in ('MCprocesosPERU','peru_interbank','VisanetPERU') and status_front ='scheduled' group by operadora,brand,due_on  ,acronym"
+        sql = "select operadora ,brand ,date_format(due_on, '%Y-%m-%d') due_on ,acronym ,count(*) as total_tx,sum(amount) as valorizado  from prod_lake_modeled_refined.fin_otc where operadora  in ('MCprocesosPERU','peru_interbank','VisanetPERU') and status_front ='scheduled' group by operadora,brand,due_on  ,acronym"
         cursor.execute(sql)
         records = cursor.fetchall()
         for row in records:
