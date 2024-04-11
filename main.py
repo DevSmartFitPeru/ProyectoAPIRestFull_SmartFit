@@ -974,7 +974,14 @@ def scheduled_pe():
 @app.route('/interfaz_ingenico/<fecha_inicio>/<fecha_fin>')
 def interfaz_ingenico(fecha_inicio,fecha_fin):
     try:
-        print("asdasd")
+        # ELIMINAR REGISTROS PARA NO DUPLICAR
+        sqlDelete = f"DELETE FROM \"FIN\".interfaz_ingenico WHERE payed_at BETWEEN  '{fecha_inicio}' and '{fecha_fin}'"
+        print(sqlDelete)
+        curDel = connposgresql.cursor()
+        curDel.execute(sqlDelete)
+        connposgresql.commit()
+
+        # EXTRAE DATOS A INSERTAR
         cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY",
                          aws_secret_access_key="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",
                          s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1",
@@ -997,11 +1004,16 @@ def interfaz_ingenico(fecha_inicio,fecha_fin):
                               " values(%s, %s, %s, %s, %s, %s, %s, %s) "
             cur.execute(query_sql_insert,(id_payment, payed_at, minifactu_id, amount_paid, created_at, state, fin_id, brand_name))
         connposgresql.commit()
-        return 'Sincronizacion INTERFAZ_INGENICO Finalizada!'
+
+        # SINCRONIZAR PROCEDIMIENTO
+        sqlProc = f"CALL \"TESORERIA_PE\".sync_payment('{fecha_inicio}','{fecha_fin}')"
+        curProc = connposgresql.cursor()
+        curProc.execute(sqlProc)
+        connposgresql.commit()
+        return jsonify({'status': 'success', 'message': 'Sincronizacion INTERFAZ_INGENICO Finalizada!'}), 200
     except Exception as e:
-        print(e)
-    finally:
-        cursor.close()
+        return jsonify({'status': 'error', 'message': f'{str(e)}'}), 500
+
 
 
 server_name = app.config['SERVER_NAME']
