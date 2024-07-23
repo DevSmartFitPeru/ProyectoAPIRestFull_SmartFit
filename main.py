@@ -1,3 +1,5 @@
+import openpyxl
+from openpyxl import Workbook
 import psycopg2
 from flask import Flask, jsonify
 from pyathena import connect
@@ -1013,6 +1015,40 @@ def interfaz_ingenico(fecha_inicio,fecha_fin):
         return jsonify({'status': 'success', 'message': 'Sincronizacion INTERFAZ_INGENICO Finalizada!'}), 200
     except Exception as e:
         return jsonify({'status': 'error', 'message': f'{str(e)}'}), 500
+
+@app.route('/front_system/<fecha_inicio>/<fecha_fin>')
+def front_system(fecha_inicio,fecha_fin):
+    try:
+
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY",
+                         aws_secret_access_key="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",
+                         s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1",
+                         work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+
+        cursor.execute("select date_format(t1.paid_at , '%Y-%m-%d') paid_at,t2.created_at,t2.external_system  ,t2.minifactu_id,t2.country,t2.external_id,otc.gross_value  from prod_lake_minifactu_refined.invoices_data t1 inner join prod_lake_minifactu_refined.invoices t2 on t1.invoice_id = t2.id inner join  prod_lake_modeled_refined.oic_otc otc on t2.minifactu_id = otc.minifactu_id where date_format(t1.paid_at , '%Y-%m-%d') BETWEEN '" + str(fecha_inicio) + "' and '" + str(fecha_fin) + "' and t2.external_system not in ('SmartSystem') limit 10;")
+        records = cursor.fetchall()
+
+        for row in records:
+            paid_at = str(row[0])
+            created_at = str(row[1])
+            external_system = str(row[2])
+            minifactu_id = str(row[3])
+            country = str(row[4])
+            external_id = str(row[5])
+            gross_value = str(row[6])
+            cur = connposgresql.cursor()
+            query_sql_insert = 'insert into "DATALAKE".front_system (paid_at,created_at,external_system,minifactu_id,country,external_id,gross_value) ' \
+                               "values(%s,%s,%s,%s,%s,%s,%s)"
+
+            cur.execute(query_sql_insert, (
+            paid_at, created_at, external_system, minifactu_id, country, external_id, gross_value))
+        connposgresql.commit()
+        cursor.close()
+        return jsonify({'status': 'success', 'message': 'Sincronizacion Front System Finalizada con exito!!!'}), 200
+    except Exception as e:
+        print(str(e))
+    finally:
+        jsonify({'status': 'success', 'message': 'Sincronizacion Finalizada!'}), 200
 
 
 
