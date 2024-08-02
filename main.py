@@ -1,18 +1,16 @@
+import datetime as datetime
 import openpyxl
 from openpyxl import Workbook
 import psycopg2
 from flask import Flask, jsonify
 from pyathena import connect
 import requests
-
+import csv
+from datetime import datetime
+import datetime
+from datetime import date
 app = Flask(__name__)
 
-#conn = pymssql.connect(server='10.84.6.199', user='sa', password='31zDM#OJ9f1g7h!&hsDR', database='VOXIVA')
-#sqldatawarehouse = pymssql.connect(server='10.84.6.189', user='dev', password='DevTIPe2024!!$', database='DWH_SF')
-#con189 = pymssql.connect(server='10.84.6.189', user='dev', password='DevTIPe2024!!$', database='TUNQUI_LATAM')
-
-#Cadena de Conexion PostsgreSQL
-#connposgresql = psycopg2.connect("postgresql://postgres:root@localhost:5432/DWH")
 connposgresql = psycopg2.connect("postgresql://postgres:Pagamento2024$@dwh.ckioqeuxcht7.us-east-2.rds.amazonaws.com:5432/DWH")
 
 @app.route('/location')
@@ -1025,7 +1023,7 @@ def front_system(fecha_inicio,fecha_fin):
                          s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1",
                          work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
 
-        cursor.execute("select date_format(t1.paid_at , '%Y-%m-%d') paid_at,t2.created_at,t2.external_system  ,t2.minifactu_id,t2.country,t2.external_id,otc.gross_value  from prod_lake_minifactu_refined.invoices_data t1 inner join prod_lake_minifactu_refined.invoices t2 on t1.invoice_id = t2.id inner join  dev_lake_temp.oic_otc otc on t2.minifactu_id = otc.minifactu_id where date_format(t1.paid_at , '%Y-%m-%d') BETWEEN '" + str(fecha_inicio) + "' and '" + str(fecha_fin) + "' and t2.external_system not in ('SmartSystem') and otc.operation ='person_plan';")
+        cursor.execute("select date_format(t1.paid_at , '%Y-%m-%d') paid_at,t2.created_at,t2.external_system  ,t2.minifactu_id,t2.country,t2.external_id,otc.gross_value  from prod_lake_minifactu_refined.invoices_data t1 inner join prod_lake_minifactu_refined.invoices t2 on t1.invoice_id = t2.id inner join  prod_lake_modeled_refined.oic_otc otc on t2.minifactu_id = otc.minifactu_id where date_format(t1.paid_at , '%Y-%m-%d') BETWEEN '" + str(fecha_inicio) + "' and '" + str(fecha_fin) + "' and t2.external_system and otc.operation ='person_plan';")
         records = cursor.fetchall()
 
         for row in records:
@@ -1049,8 +1047,51 @@ def front_system(fecha_inicio,fecha_fin):
         print(str(e))
     finally:
         jsonify({'status': 'success', 'message': 'Sincronizacion Finalizada!'}), 200
-
-
+@app.route('/load_csv_tunquiaws')
+def load_csv_tunquiaws():
+    try:#Leyendo datos para inserccion desde la cabecera nivel de lineas
+       # with open('C:\\Users\\luis.azanero.BIO-RITMO\\Desktop\\FILES_CSV_ERP\\ucmfa202485425', newline='', encoding='utf-8') as f:
+            reader = csv.reader(f, delimiter=',', quoting=csv.QUOTE_NONE)
+            next(reader)  # Skip the header row (salto de la primera linea).
+            format = '%Y-%m-%d'
+            for row in reader:
+               # Insertando datos dese la cabecera
+                customertrxlineid = row[0]
+                customertrxlineid_insert = str(customertrxlineid.replace('"', ""))
+                TRANSACTIONHEADERCUSTOMERTRXID = str(row[3])
+                TRANSACTIONHEADERCUSTOMERTRXID_insert = str(TRANSACTIONHEADERCUSTOMERTRXID.replace('"', ""))
+                TRANSACTIONHEADERTRXDATE = str(row[4])
+                TRANSACTIONHEADERTRXDATE_insert = TRANSACTIONHEADERTRXDATE.replace('"', "")
+                fecha = datetime.datetime.strptime(TRANSACTIONHEADERTRXDATE_insert, format).date()
+                dia = str(fecha.day)
+                mes = str(fecha.month)
+                anio = str(fecha.year)
+                fecha_emision = str(anio+'-'+mes+'-'+dia)
+                TRANSACTIONLINEINTERFACELINEATTRIBUTE1 = str(row[6])
+                TRANSACTIONLINEINTERFACELINEATTRIBUTE1_insert = str(TRANSACTIONLINEINTERFACELINEATTRIBUTE1.replace('NA', "-")).replace('"', "")
+                TRANSACTIONLINEINTERFACELINEATTRIBUTE2 = str(row[13])
+                TRANSACTIONLINEINTERFACELINEATTRIBUTE2_insert = str(TRANSACTIONLINEINTERFACELINEATTRIBUTE2.replace('"', ""))
+                TRANSACTIONLINEINTERFACELINEATTRIBUTE3 = str(row[14])
+                TRANSACTIONLINEINTERFACELINEATTRIBUTE3_insert = str(TRANSACTIONLINEINTERFACELINEATTRIBUTE3.replace('"', ""))
+                TRANSACTIONLINELINENUMBER = str(row[21])
+                TRANSACTIONLINELINENUMBER_insert = str(TRANSACTIONLINELINENUMBER.replace('"', ""))
+                TRANSACTIONLINELINETYPE = str(row[22])
+                TRANSACTIONLINELINETYPE_insert = str(TRANSACTIONLINELINETYPE.replace('"', ""))
+                TRANSACTIONLINEUNITSELLINGPRICE = str(row[23])
+                TRANSACTIONLINEUNITSELLINGPRICE_insert = str(TRANSACTIONLINEUNITSELLINGPRICE.replace('"', ""))
+                TRANSACTIONLINEUNITSTANDARDPRICE = str(row[24])
+                TRANSACTIONLINEUNITSTANDARDPRICE_insert = str(TRANSACTIONLINEUNITSTANDARDPRICE.replace('"', ""))
+                cur = connposgresql.cursor()
+                query_sql_insert = 'INSERT INTO "ORACLE".invoice_erp_cabecera_bicc (customertrxlineid,transactionheadercustomertrxid,TRANSACTIONHEADERTRXDATE,TRANSACTIONLINEINTERFACELINEATTRIBUTE1,TRANSACTIONLINEINTERFACELINEATTRIBUTE2,TRANSACTIONLINELINENUMBER,TRANSACTIONLINELINETYPE,TRANSACTIONLINEUNITSELLINGPRICE,TRANSACTIONLINEUNITSTANDARDPRICE,TRANSACTIONLINEINTERFACELINEATTRIBUTE3) ' \
+                               "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                cur.execute(query_sql_insert, (
+                customertrxlineid_insert, TRANSACTIONHEADERCUSTOMERTRXID_insert, fecha_emision,TRANSACTIONLINEINTERFACELINEATTRIBUTE1_insert,TRANSACTIONLINEINTERFACELINEATTRIBUTE2_insert,TRANSACTIONLINELINENUMBER_insert,TRANSACTIONLINELINETYPE_insert,TRANSACTIONLINEUNITSELLINGPRICE_insert,TRANSACTIONLINEUNITSTANDARDPRICE_insert,TRANSACTIONLINEINTERFACELINEATTRIBUTE3_insert))
+                connposgresql.commit()
+                print('Sincronizacion en proceso...'+TRANSACTIONLINEINTERFACELINEATTRIBUTE1_insert)
+    except Exception as e:
+        print(str(e))
+    finally:
+        print('Finalize')
 
 server_name = app.config['SERVER_NAME']
 if server_name and ':' in server_name:
