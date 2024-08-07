@@ -1023,7 +1023,7 @@ def front_system(fecha_inicio,fecha_fin):
                          s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1",
                          work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
 
-        cursor.execute("select date_format(t1.paid_at , '%Y-%m-%d') paid_at,t2.created_at,t2.external_system  ,t2.minifactu_id,t2.country,t2.external_id,otc.gross_value  from prod_lake_minifactu_refined.invoices_data t1 inner join prod_lake_minifactu_refined.invoices t2 on t1.invoice_id = t2.id inner join  prod_lake_modeled_refined.oic_otc otc on t2.minifactu_id = otc.minifactu_id where date_format(t1.paid_at , '%Y-%m-%d') BETWEEN '" + str(fecha_inicio) + "' and '" + str(fecha_fin) + "' and otc.operation ='person_plan';")
+        cursor.execute("select date_format(t1.paid_at , '%Y-%m-%d') paid_at,t2.created_at,t2.external_system  ,t2.minifactu_id,t2.country,t2.external_id,otc.gross_value,otc.operation  from prod_lake_minifactu_refined.invoices_data t1 inner join prod_lake_minifactu_refined.invoices t2 on t1.invoice_id = t2.id inner join  prod_lake_modeled_refined.oic_otc otc on t2.minifactu_id = otc.minifactu_id where date_format(t1.paid_at , '%Y-%m-%d') BETWEEN '" + str(fecha_inicio) + "' and '" + str(fecha_fin) + "' and otc.operation  not in('person_plan');")
         records = cursor.fetchall()
 
         for row in records:
@@ -1034,12 +1034,13 @@ def front_system(fecha_inicio,fecha_fin):
             country = str(row[4])
             external_id = str(row[5])
             gross_value = str(row[6])
+            operation = str(row[7])
             cur = connposgresql.cursor()
-            query_sql_insert = 'insert into "DATALAKE".front_system (paid_at,created_at,external_system,minifactu_id,country,external_id,gross_value) ' \
-                               "values(%s,%s,%s,%s,%s,%s,%s)"
+            query_sql_insert = 'insert into "DATALAKE".front_system (paid_at,created_at,external_system,minifactu_id,country,external_id,gross_value,operation) ' \
+                               "values(%s,%s,%s,%s,%s,%s,%s,%s)"
 
             cur.execute(query_sql_insert, (
-            paid_at, created_at, external_system, minifactu_id, country, external_id, gross_value))
+            paid_at, created_at, external_system, minifactu_id, country, external_id, gross_value,operation))
         connposgresql.commit()
         cursor.close()
         return jsonify({'status': 'success', 'message': 'Sincronizacion Front System Finalizada con exito!!!'}), 200
