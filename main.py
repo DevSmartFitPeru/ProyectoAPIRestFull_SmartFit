@@ -1023,7 +1023,7 @@ def front_system(fecha_inicio,fecha_fin):
                          s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1",
                          work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
 
-        cursor.execute("select distinct date_format(t1.paid_at , '%Y-%m-%d') paid_at,t2.created_at,t2.external_system  ,t2.minifactu_id,t2.country,t2.external_id,otc.gross_value,otc.operation,CASE WHEN otc.gross_value is null THEN 'Pendiente_Integrar_en_oic_db' else 'Integrado_en_oic_db' end as status_integration_oic_db  from prod_lake_minifactu_refined.invoices_data t1 inner join prod_lake_minifactu_refined.invoices t2 on t1.invoice_id = t2.id LEFT join  prod_lake_modeled_refined.oic_otc otc on t2.minifactu_id = otc.minifactu_id where date_format(t1.paid_at , '%Y-%m-%d') BETWEEN '" + str(fecha_inicio) + "' and '" + str(fecha_fin) + "' and t2.country in ('peru','brazil','mexico','colombia','chile');")
+        cursor.execute("select distinct date_format(t1.paid_at , '%Y-%m-%d') paid_at,t2.created_at,t2.external_system  ,t2.minifactu_id,t2.country,t2.external_id,otc.gross_value,otc.operation,CASE WHEN otc.gross_value is null THEN 'Pendiente_Integrar_en_oic_db' else 'Integrado_en_oic_db' end as status_integration_oic_db  from prod_lake_minifactu_refined.invoices_data t1 inner join prod_lake_minifactu_refined.invoices t2 on t1.invoice_id = t2.id LEFT join  prod_lake_modeled_refined.oic_otc otc on t2.minifactu_id = otc.minifactu_id where date_format(t1.paid_at , '%Y-%m-%d') BETWEEN '" + str(fecha_inicio) + "' and '" + str(fecha_fin) + "';")
         records = cursor.fetchall()
 
         for row in records:
