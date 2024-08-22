@@ -1048,52 +1048,40 @@ def front_system(fecha_inicio,fecha_fin):
         print(str(e))
     finally:
         jsonify({'status': 'success', 'message': 'Sincronizacion Finalizada!'}), 200
-@app.route('/load_csv_tunquiaws')
-def load_csv_tunquiaws():
-    try:#Leyendo datos para inserccion desde la cabecera nivel de lineas
-       # with open('C:\\Users\\luis.azanero.BIO-RITMO\\Desktop\\FILES_CSV_ERP\\ucmfa202485425', newline='', encoding='utf-8') as f:
-            reader = csv.reader(f, delimiter=',', quoting=csv.QUOTE_NONE)
-            next(reader)  # Skip the header row (salto de la primera linea).
-            format = '%Y-%m-%d'
-            for row in reader:
-               # Insertando datos dese la cabecera
-                customertrxlineid = row[0]
-                customertrxlineid_insert = str(customertrxlineid.replace('"', ""))
-                TRANSACTIONHEADERCUSTOMERTRXID = str(row[3])
-                TRANSACTIONHEADERCUSTOMERTRXID_insert = str(TRANSACTIONHEADERCUSTOMERTRXID.replace('"', ""))
-                TRANSACTIONHEADERTRXDATE = str(row[4])
-                TRANSACTIONHEADERTRXDATE_insert = TRANSACTIONHEADERTRXDATE.replace('"', "")
-                fecha = datetime.datetime.strptime(TRANSACTIONHEADERTRXDATE_insert, format).date()
-                dia = str(fecha.day)
-                mes = str(fecha.month)
-                anio = str(fecha.year)
-                fecha_emision = str(anio+'-'+mes+'-'+dia)
-                TRANSACTIONLINEINTERFACELINEATTRIBUTE1 = str(row[6])
-                TRANSACTIONLINEINTERFACELINEATTRIBUTE1_insert = str(TRANSACTIONLINEINTERFACELINEATTRIBUTE1.replace('NA', "-")).replace('"', "")
-                TRANSACTIONLINEINTERFACELINEATTRIBUTE2 = str(row[13])
-                TRANSACTIONLINEINTERFACELINEATTRIBUTE2_insert = str(TRANSACTIONLINEINTERFACELINEATTRIBUTE2.replace('"', ""))
-                TRANSACTIONLINEINTERFACELINEATTRIBUTE3 = str(row[14])
-                TRANSACTIONLINEINTERFACELINEATTRIBUTE3_insert = str(TRANSACTIONLINEINTERFACELINEATTRIBUTE3.replace('"', ""))
-                TRANSACTIONLINELINENUMBER = str(row[21])
-                TRANSACTIONLINELINENUMBER_insert = str(TRANSACTIONLINELINENUMBER.replace('"', ""))
-                TRANSACTIONLINELINETYPE = str(row[22])
-                TRANSACTIONLINELINETYPE_insert = str(TRANSACTIONLINELINETYPE.replace('"', ""))
-                TRANSACTIONLINEUNITSELLINGPRICE = str(row[23])
-                TRANSACTIONLINEUNITSELLINGPRICE_insert = str(TRANSACTIONLINEUNITSELLINGPRICE.replace('"', ""))
-                TRANSACTIONLINEUNITSTANDARDPRICE = str(row[24])
-                TRANSACTIONLINEUNITSTANDARDPRICE_insert = str(TRANSACTIONLINEUNITSTANDARDPRICE.replace('"', ""))
-                cur = connposgresql.cursor()
-                query_sql_insert = 'INSERT INTO "ORACLE".invoice_erp_cabecera_bicc (customertrxlineid,transactionheadercustomertrxid,TRANSACTIONHEADERTRXDATE,TRANSACTIONLINEINTERFACELINEATTRIBUTE1,TRANSACTIONLINEINTERFACELINEATTRIBUTE2,TRANSACTIONLINELINENUMBER,TRANSACTIONLINELINETYPE,TRANSACTIONLINEUNITSELLINGPRICE,TRANSACTIONLINEUNITSTANDARDPRICE,TRANSACTIONLINEINTERFACELINEATTRIBUTE3) ' \
-                               "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-                cur.execute(query_sql_insert, (
-                customertrxlineid_insert, TRANSACTIONHEADERCUSTOMERTRXID_insert, fecha_emision,TRANSACTIONLINEINTERFACELINEATTRIBUTE1_insert,TRANSACTIONLINEINTERFACELINEATTRIBUTE2_insert,TRANSACTIONLINELINENUMBER_insert,TRANSACTIONLINELINETYPE_insert,TRANSACTIONLINEUNITSELLINGPRICE_insert,TRANSACTIONLINEUNITSTANDARDPRICE_insert,TRANSACTIONLINEINTERFACELINEATTRIBUTE3_insert))
-                connposgresql.commit()
-                print('Sincronizacion en proceso...'+TRANSACTIONLINEINTERFACELINEATTRIBUTE1_insert)
+@app.route('/receivable_otc/<fecha_inicio>/<fecha_fin>')
+def receivable_otc(fecha_inicio,fecha_fin):
+    try:
+
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTUCHTCM2ZY",
+                         aws_secret_access_key="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",
+                         s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-latam/", region_name="us-east-1",
+                         work_group="peru", schema_name="prod_lake_modeled_refined").cursor()
+        cursor.execute("select distinct otc.minifactu_id ,otc.country,otc.operation,rece.registration_gym_student ,otc.front_id ,otc.origin_system ,CASE WHEN rece.erp_clustered_receivable_id is null THEN 0 ELSE rece.erp_clustered_receivable_id end erp_clustered_receivable_id,CASE WHEN sum(item.list_price) is null THEN 0 ELSE sum(item.list_price) end list_price,CASE WHEN sum(item.sale_price) is null THEN 0 ELSE sum(item.sale_price) end importe_ar_erp from prod_lake_oic_refined.order_to_cash otc inner join prod_lake_oic_refined.receivable rece on otc.id = rece.order_to_cash_id inner join prod_lake_oic_refined.invoice invo on otc.id = invo.order_to_cash_id inner join prod_lake_oic_refined.invoice invoice on otc.id = invoice.order_to_cash_id inner join prod_lake_oic_refined.invoice_items item on invoice.id = item.id_invoice where rece.billing_date between cast('" + str(fecha_inicio) + " 00:00:00' as timestamp) and cast('" + str(fecha_fin) + " 00:00:00' as timestamp) and otc.country ='Brazil' group by otc.minifactu_id ,otc.country,otc.operation,rece.registration_gym_student,otc.front_id,otc.origin_system ,rece.erp_clustered_receivable_id;")
+        records = cursor.fetchall()
+
+        for row in records:
+            minifactu_id = str(row[0])
+            country = str(row[1])
+            operation = str(row[2])
+            registration_gym_student = str(row[3])
+            front_id = str(row[4])
+            origin_system = str(row[5])
+            erp_clustered_receivable_id = str(row[6])
+            list_price = str(row[7])
+            importe_ar_erp = str(row[8])
+            cur = connposgresql.cursor()
+            query_sql_insert = 'insert into "DATALAKE".oic_otc (minifactu_id,country,operation,registration_gym_student,front_id,origin_system,erp_clustered_receivable_id,list_price,importe_ar_erp) ' \
+                               "values(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+
+            cur.execute(query_sql_insert, (
+            minifactu_id,country,operation,registration_gym_student,front_id,origin_system,erp_clustered_receivable_id,list_price,importe_ar_erp))
+        connposgresql.commit()
+        cursor.close()
+        return jsonify({'status': 'success', 'message': 'Sincronizacion Front System Finalizada con exito!!!'}), 200
     except Exception as e:
         print(str(e))
     finally:
-        print('Finalize')
-
+        jsonify({'status': 'success', 'message': 'Sincronizacion Finalizada!'}), 200
 server_name = app.config['SERVER_NAME']
 if server_name and ':' in server_name:
     host, port = server_name.split(":")
