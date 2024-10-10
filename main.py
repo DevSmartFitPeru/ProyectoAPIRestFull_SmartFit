@@ -1084,6 +1084,45 @@ def receivable_otc(fecha_inicio,fecha_fin):
         print(str(e))
     finally:
         jsonify({'status': 'success', 'message': 'Sincronizacion Finalizada!'}), 200
+@app.route('/conciliacion_mx/<fecha_inicio>/<fecha_fin>')
+def conciliacion_mx(fecha_inicio, fecha_fin):
+        try:
+
+            cursor = connect(aws_access_key_id="AKIA4LTBLLTULQVURH6J",
+                             aws_secret_access_key="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",
+                             s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-oic-peru",
+                             region_name="us-east-1",
+                             work_group="oic_peru", schema_name="prod_lake_modeled_refined").cursor()
+
+            cursor.execute(
+                "WITH payments_services AS (SELECT date(p.payed_at) AS payed_at, p.payable_type, p.payable_id, p.plan_id, p.location_id, pm.kind AS payment_method_kind, p.state AS payment_state, st.name AS status_name, pc.name AS payment_company_name, p.id AS payment_id, w.person_id AS person_id, p.amount_paid AS amount_paid, p.authorization_number, w.card_number, otc.minifactu_id, p.invoice_code, p.load_datetime FROM prod_lake_ss_refined.payments p JOIN prod_lake_ss_refined.wallets w ON w.id = p.wallet_id JOIN prod_lake_ss_refined.payment_companies pc ON pc.id = w.payment_company_id JOIN prod_lake_ss_refined.payment_methods pm ON pm.id = pc.payment_method_id LEFT JOIN prod_lake_ss_refined.payment_statuses st ON st.id = p.payment_status_id LEFT JOIN prod_lake_modeled_refined.minifactu_otc otc ON p.id = otc.id_payment WHERE p.state = 'payed' AND p.amount_paid > 0 AND p.payable_type = 'Service' AND year(p.payed_at) = year(CURRENT_DATE) AND p.location_id IN (SELECT l.id FROM prod_lake_modeled_refined.dim_locations l WHERE l.country = 'México')), services AS (SELECT s.id AS service_id, s.description AS service_description, p.id AS product_id, p.name AS product_name, p.description AS product_description, p.kind AS product_kind FROM prod_lake_ss_refined.services s JOIN prod_lake_ss_refined.products p ON p.id = s.product_id), payments_membership AS (SELECT date(p.payed_at) AS payed_at, p.payable_type, p.payable_id, p.plan_id, p.location_id, pm.kind AS payment_method_kind, p.state AS payment_state, st.name AS status_name, pc.name AS payment_company_name, p.id AS payment_id, w.person_id AS person_id, p.amount_paid AS amount_paid, 'Membresía ' AS product_description, p.authorization_number, w.card_number, otc.minifactu_id, p.invoice_code, p.load_datetime FROM prod_lake_ss_refined.payments p JOIN prod_lake_ss_refined.wallets w ON w.id = p.wallet_id JOIN prod_lake_ss_refined.payment_companies pc ON pc.id = w.payment_company_id JOIN prod_lake_ss_refined.payment_methods pm ON pm.id = pc.payment_method_id LEFT JOIN prod_lake_ss_refined.payment_statuses st ON st.id = p.payment_status_id LEFT JOIN prod_lake_modeled_refined.minifactu_otc otc ON p.id = otc.id_payment WHERE p.state = 'payed' AND p.amount_paid > 0 AND p.payable_type = 'Membership' AND year(p.payed_at) = year(CURRENT_DATE) AND p.location_id IN (SELECT l.id FROM prod_lake_modeled_refined.dim_locations l WHERE l.country = 'México')), payments_union AS (SELECT payments_services.payed_at, payments_services.payable_type, payments_services.payable_id, payments_services.plan_id, payments_services.location_id, payments_services.payment_method_kind, payments_services.payment_state, payments_services.status_name, payments_services.payment_company_name, payments_services.payment_id, payments_services.person_id, payments_services.amount_paid, services.product_description, payments_services.authorization_number, payments_services.card_number, payments_services.minifactu_id, payments_services.invoice_code, payments_services.load_datetime FROM payments_services INNER JOIN services ON services.service_id = payable_id UNION ALL SELECT payments_membership.payed_at, payments_membership.payable_type, payments_membership.payable_id, payments_membership.plan_id, payments_membership.location_id, payments_membership.payment_method_kind, payments_membership.payment_state, payments_membership.status_name, payments_membership.payment_company_name, payments_membership.payment_id, payments_membership.person_id, payments_membership.amount_paid, payments_membership.product_description, payments_membership.authorization_number, payments_membership.card_number, payments_membership.minifactu_id, payments_membership.invoice_code, payments_membership.load_datetime FROM payments_membership), plans AS (SELECT id AS plan_id, name AS plan_name FROM prod_lake_modeled_refined.dim_plans), units_countries AS (SELECT id AS location_id, country, currency, acronym, name AS location_name FROM prod_lake_modeled_refined.dim_locations), payments_complete AS (SELECT payed_at AS fecha_pago, payment_id AS front_id, acronym AS sigla_unidad, person_id AS matricula_usuario, amount_paid AS importe, plan_name AS PLAN, payment_method_kind AS metodo_pago, CASE WHEN payable_type = 'Service' THEN product_description ELSE concat(product_description, plan_name) END AS descripcion_mensualidad, payment_company_name AS financiero, minifactu_id FROM payments_union INNER JOIN plans ON plans.plan_id = payments_union.plan_id INNER JOIN units_countries ON units_countries.location_id = payments_union.location_id) SELECT * FROM payments_complete WHERE fecha_pago BETWEEN cast('" + str(fecha_inicio) + " 00:00:00' AS timestamp) AND cast('" + str(fecha_fin) + " 00:00:00' AS timestamp) AND minifactu_id IS NULL;")
+            records = cursor.fetchall()
+
+            for row in records:
+                fecha_pago = str(row[0])
+                front_id = str(row[1])
+                sigla_unidad = str(row[2])
+                matricula_usuario = str(row[3])
+                importe = str(row[4])
+                PLAN = str(row[5])
+                metodo_pago = str(row[6])
+                descripcion_mensualidad = str(row[7])
+                financiero = row[8]
+                minifactu_id = row[9]
+                cur = connposgresql.cursor()
+                query_sql_insert = 'insert into "MEXICO"."CONCILIACION" (fecha_pago,front_id, sigla_unidad, matricula_usuario, importe, PLAN, metodo_pago, descripcion_mensualidad, financiero, minifactu_id) ' \
+                                   "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+
+                cur.execute(query_sql_insert, (
+                fecha_pago, front_id, sigla_unidad, matricula_usuario, importe, PLAN, metodo_pago, descripcion_mensualidad,
+                financiero, minifactu_id))
+            connposgresql.commit()
+            cursor.close()
+            return jsonify({'status': 'success', 'message': 'Conciliacion Financiera de Mexico Finalizada!'}), 200
+        except Exception as e:
+            print(str(e))
+        finally:
+            print('Se ejecuto pagos procesados.')
 server_name = app.config['SERVER_NAME']
 if server_name and ':' in server_name:
     host, port = server_name.split(":")
