@@ -1123,6 +1123,41 @@ def conciliacion_mx(fecha_inicio, fecha_fin):
             print(str(e))
         finally:
             print('Se ejecuto pagos procesados.')
+@app.route('/smartsystem_legacy/<fecha_inicio>/<fecha_fin>')
+def smartsystem_legacy(fecha_inicio,fecha_fin):
+    try:
+
+        cursor = connect(aws_access_key_id="AKIA4LTBLLTULQVURH6J",
+                         aws_secret_access_key="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",
+                         s3_staging_dir="s3://7-smartfit-da-de-lake-artifacts-athena-oic-peru", region_name="us-east-1",
+                         work_group="oic_peru", schema_name="prod_lake_modeled_refined").cursor()
+
+        cursor.execute("select id_payment,status_pagamento,date_format(payed_at , '%Y-%m-%d') payed_at ,amount_paid ,CASE WHEN forma_pagamento is null THEN 'Forma de Pago NO Identificada' ELSE forma_pagamento end as forma_pagamento ,country ,acronym,CASE WHEN minifactu_id is null THEN 0 ELSE minifactu_id end minifactu_id , CASE WHEN errors is null THEN 'Sin errores en SmartSystem' ELSE array_join(errors,',') end error,CASE WHEN error is null THEN 'Solicitar reenvio a MiniFactu' ELSE error end error_ss from prod_lake_modeled_refined.minifactu_otc where date_format(payed_at, '%Y-%m-%d') BETWEEN '" + str(fecha_inicio) + "' and '" + str(fecha_fin) + "' and country = 'Brasil'")
+        records = cursor.fetchall()
+
+        for row in records:
+            id_payment = str(row[0])
+            status_pagamento = str(row[1])
+            payed_at = str(row[2])
+            amount_paid = str(row[3])
+            forma_pagamento = str(row[4])
+            country = str(row[5])
+            acronym = str(row[6])
+            minifactu_id = str(row[7])
+            error = row[8]
+            error_ss = row[9]
+            cur = connposgresql.cursor()
+            query_sql_insert = 'insert into "ATHENA"."PAGOS_PROCESADOS_SMARTSYSTEM_LATAM"  (ID_PAYMENT,STATUS_PAGAMENTO,PAYET_AT,AMOUNT_PAID,FORMA_PAGAMENTO,COUNTRY,ACRONYM,MINIFACTU_ID,ERROR,error_ss) ' \
+                              "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+
+            cur.execute(query_sql_insert,(id_payment,status_pagamento,payed_at,amount_paid,forma_pagamento,country,acronym,minifactu_id,error,error_ss))
+        connposgresql.commit()
+        cursor.close()
+        return jsonify({'status': 'success', 'message': 'Sincronizacion Finalizada!'}), 200
+    except Exception as e:
+        print(str(e))
+    finally:
+        print('Se ejecuto pagos procesados.')
 server_name = app.config['SERVER_NAME']
 if server_name and ':' in server_name:
     host, port = server_name.split(":")
